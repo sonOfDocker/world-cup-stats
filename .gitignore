@@ -19,3 +19,8 @@ node_modules/
 out/
 dist/
 build/
+
+# api
+api/.gradle/
+api/build/
+api/.idea/
