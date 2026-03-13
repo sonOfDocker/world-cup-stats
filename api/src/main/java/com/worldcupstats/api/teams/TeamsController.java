@@ -9,17 +9,15 @@ import java.util.List;
 @RestController
 public class TeamsController {
 
+    private final TeamsService teamsService;
+
+    TeamsController(TeamsService teamsService) {
+        this.teamsService = teamsService;
+    }
+
     @GetMapping(value = "/api/v1/teams", produces = MediaType.APPLICATION_JSON_VALUE)
     List<TeamDto> teams() {
-        return List.of(
-                new TeamDto("bra", "Brazil", "BRA"),
-                new TeamDto("eng", "England", "ENG"),
-                new TeamDto("ger", "Germany", "GER"),
-                new TeamDto("ita", "Italy", "ITA"),
-                new TeamDto("esp", "Spain", "ESP"),
-                new TeamDto("uru", "Uruguay", "URU"),
-                new TeamDto("fra", "France", "FRA")
-        );
+        return teamsService.getTeams();
     }
 
 }
