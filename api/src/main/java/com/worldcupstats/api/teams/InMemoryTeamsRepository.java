@@ -1,10 +1,9 @@
 package com.worldcupstats.api.teams;
 
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 
-@Repository
+// Disabled in favor of CsvTeamsRepository
+// @Repository
 class InMemoryTeamsRepository implements TeamsRepository {
 
     @Override

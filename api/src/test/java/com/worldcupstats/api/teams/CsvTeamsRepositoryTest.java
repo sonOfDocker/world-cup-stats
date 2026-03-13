@@ -10,7 +10,8 @@ class CsvTeamsRepositoryTest {
 
     @Test
     void readsTeamsFromWorldCupCsv() {
-        String csvPath = "../../data/raw/kaggle/fifa_world_cup_1930_2022_all_matches.csv";
+        String projectRoot = System.getProperty("user.dir").replace("\\api", "");
+        String csvPath = projectRoot + "/data/raw/kaggle/fifa_world_cup_1930_2022_all_matches.csv";
         CsvTeamsRepository repository = new CsvTeamsRepository(csvPath);
 
         List<TeamDto> teams = repository.findAll();
@@ -22,8 +23,8 @@ class CsvTeamsRepositoryTest {
         assertThat(teams).anyMatch(team -> 
             team.code().equals("ARG") && team.name().equals("Argentina")
         );
-        assertThat(teams).anyMatch(team -> 
-            team.code().equals("GER") && team.name().equals("Germany")
+        assertThat(teams).anyMatch(team ->
+            team.code().equals("DEU") && team.name().equals("Germany")
         );
         
         // Teams should be unique (no duplicates)
