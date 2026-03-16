@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: world-cup-stats-db
+    environment:
+      POSTGRES_DB: worldcupstats
+      POSTGRES_USER: worldcupuser
+      POSTGRES_PASSWORD: worldcuppassword
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U worldcupuser -d worldcupstats"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
