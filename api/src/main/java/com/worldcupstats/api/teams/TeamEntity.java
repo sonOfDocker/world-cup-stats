@@ -18,7 +18,7 @@ class TeamEntity {
     private String code;
 
     // JPA needs a default constructor
-    protected TeamEntity() {}
+    protected TeamEntity() { }
 
     public TeamEntity(String id, String name, String code) {
         this.id = id;
@@ -26,7 +26,15 @@ class TeamEntity {
         this.code = code;
     }
 
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public String getCode() { return code; }
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCode() {
+        return code;
+    }
 }

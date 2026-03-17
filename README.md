@@ -47,6 +47,7 @@ To get started with local development, follow these steps:
     ```bash
     docker compose up -d
     ```
+    On startup, the application uses **Flyway** to automatically create the schema and seed initial data in the PostgreSQL database.
 3.  **Run the Backend (API):**
     ```bash
     cd api
@@ -58,5 +59,12 @@ To get started with local development, follow these steps:
     ```bash
     ./gradlew integrationTest
     ```
+
+5.  **Quality Checks:**
+    Run unit tests and static analysis:
+    ```bash
+    ./gradlew check
+    ```
+    *Note: Unit tests use an in-memory H2 database, also initialized by Flyway to match the production schema.*
 
 For detailed instructions on the backend, see [api/README.md](api/README.md).

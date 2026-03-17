@@ -1,5 +1,6 @@
 plugins {
     java
+    id("checkstyle")
     id("org.springframework.boot") version "3.4.2"
     id("io.spring.dependency-management") version "1.1.7"
 }
@@ -7,6 +8,19 @@ plugins {
 group = "com.worldcupstats"
 version = "0.0.1-SNAPSHOT"
 description = "api"
+
+configure<CheckstyleExtension> {
+    toolVersion = "10.12.1"
+    isIgnoreFailures = false
+    maxWarnings = 0
+}
+
+tasks.withType<Checkstyle>().configureEach {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
 
 java {
     toolchain {

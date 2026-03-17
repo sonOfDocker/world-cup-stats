@@ -4,4 +4,4 @@ public record TeamDto(
         String id,
         String name,
         String code
-) {}
+) { }

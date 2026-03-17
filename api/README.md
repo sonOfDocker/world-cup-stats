@@ -14,10 +14,21 @@ To start the local PostgreSQL database:
 docker compose up -d
 ```
 
-The database will be available at `localhost:5432` with:
+The database will be available at `localhost:5432`. On application startup, **Flyway** automatically runs all pending migrations located in `src/main/resources/db/migration` to set up the schema and seed initial data.
+
+Database connection details (local profile):
 - Database: `worldcupstats`
 - User: `worldcupuser`
 - Password: `worldcuppassword`
+
+### Quality Checks
+To run all verification tasks (unit tests + static analysis):
+```bash
+./gradlew check
+```
+
+Static analysis is performed using [Checkstyle](https://checkstyle.org/). Configuration can be found in `config/checkstyle/checkstyle.xml`.
+Reports are generated in `build/reports/checkstyle/`.
 
 ### Running Tests
 To run the unit tests:
