@@ -59,4 +59,10 @@ To get started with local development, follow these steps:
     ./gradlew integrationTest
     ```
 
+5.  **Quality Checks:**
+    Run unit tests and static analysis:
+    ```bash
+    ./gradlew check
+    ```
+
 For detailed instructions on the backend, see [api/README.md](api/README.md).

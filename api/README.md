@@ -19,6 +19,15 @@ The database will be available at `localhost:5432` with:
 - User: `worldcupuser`
 - Password: `worldcuppassword`
 
+### Quality Checks
+To run all verification tasks (unit tests + static analysis):
+```bash
+./gradlew check
+```
+
+Static analysis is performed using [Checkstyle](https://checkstyle.org/). Configuration can be found in `config/checkstyle/checkstyle.xml`.
+Reports are generated in `build/reports/checkstyle/`.
+
 ### Running Tests
 To run the unit tests:
 ```bash
