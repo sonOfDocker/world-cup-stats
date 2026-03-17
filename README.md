@@ -32,3 +32,31 @@ This repository is organized as a simple monorepo:
 
 This structure is expected to evolve as ingestion, normalization, and analytics
 layers are introduced.
+
+## Local Development Setup
+
+To get started with local development, follow these steps:
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/world-cup-stats.git
+    cd world-cup-stats
+    ```
+2.  **Start the local database:**
+    Ensure you have Docker and Docker Compose installed.
+    ```bash
+    docker compose up -d
+    ```
+3.  **Run the Backend (API):**
+    ```bash
+    cd api
+    ./gradlew bootRun
+    ```
+    The API will be available at `http://localhost:8080`. By default, it uses the `local` profile, which connects to the PostgreSQL database.
+4.  **Verify Ingestion & Migrations:**
+    Check the database connection and schema migrations by running integration tests:
+    ```bash
+    ./gradlew integrationTest
+    ```
+
+For detailed instructions on the backend, see [api/README.md](api/README.md).

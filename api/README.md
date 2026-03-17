@@ -38,4 +38,9 @@ To run tests that require a real database:
 ```bash
 ./gradlew bootRun
 ```
-(Note: You need the database running for the application to start successfully as Flyway migrations run on startup).
+By default, the application runs with the `local` profile, which connects to the database started via Docker Compose.
+
+To run with a specific profile:
+```bash
+./gradlew bootRun --args='--spring.profiles.active=yourprofile'
+```
