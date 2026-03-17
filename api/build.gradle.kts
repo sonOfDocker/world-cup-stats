@@ -35,7 +35,9 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform {
-        excludeTags("integration")
+        if (name == "test") {
+            excludeTags("integration")
+        }
     }
     testLogging {
         events("passed", "skipped", "failed")

@@ -16,7 +16,7 @@ public class TeamsController {
     }
 
     @GetMapping(value = "/api/v1/teams", produces = MediaType.APPLICATION_JSON_VALUE)
-    List<TeamDto> teams() {
+    public List<TeamDto> teams() {
         return teamsService.getTeams();
     }
 

@@ -1,66 +1,58 @@
 package com.worldcupstats.api.teams;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 @Repository
+@Profile("!local")
 class CsvTeamsRepository implements TeamsRepository {
 
-    private final String csvPath;
+    private final Path csvPath;
 
     public CsvTeamsRepository() {
         String projectRoot = System.getProperty("user.dir");
+        Path rootPath = Paths.get(projectRoot);
         // When running from api module, go up one level to project root
-        if (projectRoot.endsWith("api")) {
-            projectRoot = projectRoot.substring(0, projectRoot.length() - 4);
+        if (rootPath.endsWith("api")) {
+            rootPath = rootPath.getParent();
         }
-        this.csvPath = projectRoot + "/data/raw/kaggle/fifa_world_cup_1930_2022_all_matches.csv";
+        this.csvPath = rootPath.resolve("data/raw/kaggle/fifa_world_cup_1930_2022_all_matches.csv");
     }
 
     // Constructor for testing
     CsvTeamsRepository(String csvPath) {
-        this.csvPath = csvPath;
+        this.csvPath = Paths.get(csvPath);
     }
 
     @Override
     public List<TeamDto> findAll() {
         Map<String, String> teamMap = new HashMap<>();
-        
-        Path absolutePath = Paths.get(csvPath).toAbsolutePath();
-        
-        try (BufferedReader reader = new BufferedReader(new FileReader(absolutePath.toFile()))) {
-            String line = reader.readLine(); // Skip header
-            
-            while ((line = reader.readLine()) != null) {
-                String[] fields = parseCsvLine(line);
-                
-                if (fields.length >= 23) {
-                    // Home team: index 19 = Home Team Code, index 18 = Home Team Name
-                    String homeCode = fields[19].trim();
-                    String homeName = fields[18].trim();
-                    if (!homeCode.isEmpty() && !homeName.isEmpty()) {
-                        teamMap.putIfAbsent(homeCode, homeName);
-                    }
-                    
-                    // Away team: index 22 = Away Team Code, index 21 = Away Team Name
-                    String awayCode = fields[22].trim();
-                    String awayName = fields[21].trim();
-                    if (!awayCode.isEmpty() && !awayName.isEmpty()) {
-                        teamMap.putIfAbsent(awayCode, awayName);
-                    }
-                }
-            }
+
+        try (Stream<String> lines = Files.lines(csvPath.toAbsolutePath(), StandardCharsets.ISO_8859_1)) {
+            lines.skip(1) // Skip header
+                    .forEach(line -> {
+                        String[] fields = parseCsvLine(line);
+
+                        if (fields.length >= 23) {
+                            processTeamFields(teamMap, fields[19], fields[18]);
+                            processTeamFields(teamMap, fields[22], fields[21]);
+                        }
+                    });
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read CSV file: " + absolutePath, e);
+            throw new RuntimeException("Failed to read CSV file: " + csvPath, e);
         }
-        
+
         return teamMap.entrySet().stream()
                 .map(entry -> new TeamDto(
                         entry.getKey().toLowerCase(),
@@ -68,7 +60,15 @@ class CsvTeamsRepository implements TeamsRepository {
                         entry.getKey()
                 ))
                 .sorted(Comparator.comparing(TeamDto::code))
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    private void processTeamFields(Map<String, String> teamMap, String codeField, String nameField) {
+        String code = codeField.trim();
+        String name = nameField.trim();
+        if (!code.isEmpty() && !name.isEmpty()) {
+            teamMap.putIfAbsent(code, name);
+        }
     }
     
     private String[] parseCsvLine(String line) {
