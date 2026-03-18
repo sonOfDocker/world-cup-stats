@@ -2,222 +2,203 @@
 
 ## Overview
 
-The World Cup Stats Platform is designed as an incremental architecture project that evolves from a simple dataset API into a full sports analytics platform.
+The World Cup Stats Platform is designed as an incremental data platform project that evolves from raw dataset ingestion into a full analytics and visualization system.
 
-The roadmap is divided into phases that mirror how real engineering systems grow over time.
+This roadmap reflects the actual implementation order of the system, starting from ingestion and moving upward through the stack.
 
-Each phase introduces new capabilities while maintaining clean architecture and strong testing practices.
+The system is intentionally built as a deterministic pipeline:
+
+CSV → Source Row → Canonical Domain → Database → API → Analytics → UI
+
+The goal is to demonstrate production-style engineering practices across data ingestion, domain modeling, API design, and frontend development.
 
 ---
 
-# Phase 0 — Project Foundation
+# Phase 0 — Foundation
 
-Goal: Establish the architectural and development foundations of the project.
+Goal:
+Establish the architectural and development foundations of the project.
 
 Completed work includes:
 
 - repository initialization
 - architecture documentation
-- architecture decision records (ADR)
-- development workflow documentation
-- project structure definition
+- ADRs (architecture decision records)
+- development workflow definition
+- project structure setup
 
-Deliverables:
+Outcome:
 
-```
-docs/architecture/
-docs/adr/
-docs/diagrams/
-```
-
-This phase ensures the project communicates its architecture clearly before major development begins.
+A well-structured and well-documented project ready for incremental development.
 
 ---
 
-# Phase 1 — Core API Foundation
+# Phase 1 — Deterministic Ingestion Layer
 
-Goal: Build the foundational backend API and domain model.
+Goal:
+Build a reliable ingestion layer that reads raw datasets into structured source models.
 
 Focus areas:
 
-- domain entity design
-- basic API endpoints
-- CSV data ingestion
-- test-driven development workflow
+- CSV parsing
+- encoding handling
+- raw field validation
+- deterministic parsing behavior
+- source traceability
 
-Key components:
+Outcome:
 
-```
-Team
-Match
-Tournament
-```
+The system can reliably read and represent raw dataset rows.
+
+---
+
+# Phase 2 — Canonical Domain Modeling
+
+Goal:
+Transform raw dataset rows into a clean, stable canonical domain model.
+
+Focus areas:
+
+- defining core entities (Match, Team, Tournament, Stadium, Stage)
+- deterministic mapping logic
+- normalization of domain concepts
+- separation from raw CSV structure
+
+Outcome:
+
+A consistent internal representation of World Cup data independent of raw dataset format.
+
+---
+
+# Phase 3 — Persistence & Idempotent Ingestion
+
+Goal:
+Introduce a relational database and ensure ingestion is repeatable and consistent.
+
+Focus areas:
+
+- schema design
+- Flyway migrations
+- repository layer
+- idempotent ingestion behavior
+- entity deduplication
+
+Outcome:
+
+Canonical data is stored reliably and can be re-ingested without duplication.
+
+---
+
+# Phase 4 — Read APIs
+
+Goal:
+Expose canonical data through RESTful endpoints.
+
+Focus areas:
+
+- layered architecture (controller, service, repository)
+- DTO mapping
+- filtering and query capabilities
 
 Example endpoints:
 
-```
 GET /teams
 GET /matches
 GET /tournaments
-```
 
-This phase establishes the core data model and REST API structure.
+Outcome:
 
----
-
-# Phase 2 — Data Persistence
-
-Goal: Introduce a persistent data layer to replace in-memory datasets.
-
-Planned work:
-
-- relational database integration
-- repository implementations
-- database schema design
-- data ingestion into database
-
-Proposed technology:
-
-```
-PostgreSQL
-Dockerized database
-```
-
-Updated architecture:
-
-```
-CSV Dataset
-   ↓
-Ingestion Pipeline
-   ↓
-Domain Model
-   ↓
-PostgreSQL
-   ↓
-Spring Boot API
-```
-
-This phase enables more complex queries and scalable analytics.
+Consumers can query historical World Cup data through a structured API.
 
 ---
 
-# Phase 3 — Analytics Layer
+# Phase 5 — Analytics Layer
 
-Goal: Introduce advanced analytics capabilities built on top of the canonical domain model.
+Goal:
+Provide higher-level insights derived from match data.
 
-Features may include:
+Focus areas:
 
+- aggregation queries
 - team performance metrics
-- historical tournament comparisons
-- scoring trends
-- goal distribution statistics
+- tournament statistics
+- trend analysis
 
-Example analytics endpoints:
+Outcome:
 
-```
-GET /analytics/top-teams
-GET /analytics/goals-per-tournament
-GET /analytics/team-performance/{team}
-```
-
-The analytics layer transforms raw match data into meaningful insights.
+The system demonstrates analytical capabilities beyond simple data retrieval.
 
 ---
 
-# Phase 4 — Visualization Dashboard
+# Phase 6 — Frontend (Mobile-First React)
 
-Goal: Provide a user-friendly interface for exploring historical World Cup data.
+Goal:
+Build a mobile-first frontend that consumes the API and visualizes data.
 
-Planned technology:
+Focus areas:
 
-```
-React
-```
+- responsive UI design
+- API integration
+- list and detail views
+- basic data visualization
 
-Dashboard features may include:
+Outcome:
 
-- team performance charts
-- tournament comparisons
-- historical scoring trends
-- interactive visualizations
-
-Example architecture:
-
-```
-Spring Boot API
-      ↓
-React Dashboard
-      ↓
-Interactive Charts
-```
-
-Possible visualization libraries:
-
-- Recharts
-- Chart.js
-- D3.js
+A user-facing application that makes the data accessible and interactive.
 
 ---
 
-# Phase 5 — Advanced Analytics
+# Phase 7 — Observability and Performance
 
-Goal: Extend the platform with deeper statistical analysis and predictive features.
+Goal:
+Introduce production-quality system characteristics.
 
-Potential capabilities:
+Focus areas:
 
-- expected goals models
-- team strength rankings
-- tournament simulations
-- match outcome predictions
+- logging
+- metrics
+- performance tuning
+- error handling improvements
 
-These features would build on the analytics layer introduced in earlier phases.
+Outcome:
 
----
-
-# Phase 6 — Expanded Data Sources
-
-Goal: Expand the platform beyond historical datasets.
-
-Possible additions:
-
-- real-time match data ingestion
-- integration with public sports APIs
-- support for additional tournaments or leagues
-
-Example pipeline:
-
-```
-External Sports API
-      ↓
-Streaming / Batch Ingestion
-      ↓
-Analytics Platform
-```
+Improved system reliability and visibility.
 
 ---
 
-# Long-Term Vision
+# Phase 8 — Deployment and Infrastructure
 
-The long-term goal of the World Cup Stats Platform is to demonstrate how a sports analytics system can evolve from a simple dataset ingestion project into a full analytics platform.
+Goal:
+Enable reproducible environments and deployment workflows.
 
-The architecture supports future capabilities including:
+Focus areas:
 
-- scalable data ingestion
-- advanced analytics
-- interactive visualizations
-- predictive modeling
+- Dockerization
+- environment configuration
+- CI pipelines
+- deployment documentation
 
-This project serves as a learning platform for applying modern engineering practices to real-world data systems.
+Outcome:
+
+The system can be run and deployed consistently across environments.
 
 ---
 
-# Engineering Principles
+# Future Extensions
 
-Throughout all phases, the project emphasizes:
+Potential future directions include:
 
-- clean architecture
-- test-driven development (TDD)
-- incremental feature delivery
-- well-documented architectural decisions
+- player-level datasets
+- real-time data ingestion
+- predictive analytics
+- machine learning features
 
-Each phase builds on the previous one while maintaining a maintainable and extensible codebase.
+These will build on the ingestion and canonical model foundation established in earlier phases.
+
+---
+
+# Key Principle
+
+This project is intentionally built from data → to domain → to API → to analytics → to UI.
+
+This mirrors how real data platforms are designed and demonstrates strong system design thinking.
