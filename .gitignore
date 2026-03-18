@@ -24,3 +24,7 @@ build/
 api/.gradle/
 api/build/
 api/.idea/
+
+# Generated AI/agent context bundles
+context-bundle.md
+context-*.md
