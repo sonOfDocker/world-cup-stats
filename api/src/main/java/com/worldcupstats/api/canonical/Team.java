@@ -1,8 +1,8 @@
 package com.worldcupstats.api.canonical;
 
 public record Team(
-        String id,
+        String teamId,
         String name,
-        String code
+        String fifaCode
 ) {
 }
