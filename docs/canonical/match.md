@@ -28,21 +28,28 @@ A match will have a stable internal identifier:
 | Field | Type | Description |
 |------|------|-------------|
 | match_id | string | Stable internal identifier |
+| source_id | string | Source-specific identifier (e.g. M-1930-01) |
 | tournament_year | integer | Tournament year (e.g., 2014) |
 | kickoff_datetime | string (ISO-8601) | Match kickoff datetime (normalized) |
 | tournament_round | string | Stage/round (e.g., Group Stage, Quarter-finals) |
-| home_team_id | string | Reference to canonical Team |
-| away_team_id | string | Reference to canonical Team |
+| venue | Venue | Reference to canonical Venue object |
+| home_team | Team | Reference to canonical Team object |
+| away_team | Team | Reference to canonical Team object |
 | home_goals | integer | Goals by home team (incl. extra time if applicable) |
 | away_goals | integer | Goals by away team (incl. extra time if applicable) |
+| result | MatchResult | Enum of outcome (HOME_WIN, AWAY_WIN, DRAW) |
 
 ### Optional
 | Field | Type | Description |
 |------|------|-------------|
-| venue_id | string | Reference to canonical Venue |
+| score_display | string | Human-readable score (e.g. 4-1) |
+| draw | boolean | True if match ended in a draw |
+| extra_time_played | boolean | True if match went to extra time |
+| decided_by_penalties | boolean | True if match decided by penalty shootout |
+| home_penalty_score | integer | Goals in penalty shootout (home team) |
+| away_penalty_score | integer | Goals in penalty shootout (away team) |
+| penalty_score_display | string | Human-readable penalty score (e.g. 3-4) |
 | attendance | integer | Nullable for historical gaps |
-| extra_time_played | boolean | True if match went to extra time (if derivable) |
-| decided_by_penalties | boolean | True if match decided by penalty shootout (if derivable) |
 
 ---
 
