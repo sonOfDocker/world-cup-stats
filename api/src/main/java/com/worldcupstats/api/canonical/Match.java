@@ -1,24 +1,24 @@
 package com.worldcupstats.api.canonical;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-
 public record Match(
-        String id,
-        Tournament tournament,
-        Stage stage,
-        Stadium stadium,
-        LocalDate matchDate,
-        LocalTime matchTime,
+        String matchId,
+        String sourceId,
+        Integer tournamentYear,
+        String kickoffDatetime,
+        String tournamentRound,
+        Venue venue,
         Team homeTeam,
         Team awayTeam,
-        Integer homeScore,
-        Integer awayScore,
+        Integer homeGoals,
+        Integer awayGoals,
         MatchResult result,
+        String scoreDisplay,
         boolean draw,
-        boolean extraTime,
-        boolean penaltyShootout,
+        boolean extraTimePlayed,
+        boolean decidedByPenalties,
         Integer homePenaltyScore,
-        Integer awayPenaltyScore
+        Integer awayPenaltyScore,
+        String penaltyScoreDisplay,
+        Integer attendance
 ) {
 }

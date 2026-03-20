@@ -1,7 +1,7 @@
 package com.worldcupstats.api.canonical;
 
 public record Tournament(
-        String id,
+        String sourceId,
         String name,
         Integer year
 ) {

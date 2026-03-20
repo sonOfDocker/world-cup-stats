@@ -30,17 +30,26 @@ Each match will eventually have:
 
 | Raw Source Column | Canonical Field | Authority | Notes |
 |------------------|----------------|-----------|-------|
-| Year | tournament_year | Authoritative | Used to derive tournament identity |
-| Datetime | kickoff_datetime | Authoritative | Requires parsing into UTC timestamp |
-| HomeTeam | home_team_name | Authoritative | Will later map to Team entity |
-| AwayTeam | away_team_name | Authoritative | Will later map to Team entity |
-| HomeGoals | home_goals | Authoritative | Includes extra-time goals |
-| AwayGoals | away_goals | Authoritative | Includes extra-time goals |
-| Stadium | stadium_name | Informational | Normalized later to Venue |
-| City | city | Informational | Used for enrichment |
-| Country | host_country | Informational | Used for enrichment |
-| Round | tournament_round | Authoritative | Standardized later |
+| Match Id | source_id | Authoritative | Primary stable source ID (e.g., M-1930-01) |
+| Tournament Id | tournament_id | Authoritative | Source tournament reference |
+| tournament Name | tournament_name | Authoritative | Normalize to Tournament entity |
+| Stage Name | tournament_round | Authoritative | Map to Stage.name |
+| Match Date | kickoff_datetime (part) | Authoritative | Combine with Match Time to ISO-8601 |
+| Match Time | kickoff_datetime (part) | Authoritative | Combine with Match Date to ISO-8601 |
+| Home Team Name | home_team_name | Authoritative | Normalize to Team entity |
+| Home Team Code | fifa_code (home) | Authoritative | Map to Team.fifa_code |
+| Away Team Name | away_team_name | Authoritative | Normalize to Team entity |
+| Away Team Code | fifa_code (away) | Authoritative | Map to Team.fifa_code |
+| Home Team Score | home_goals | Authoritative | Includes extra-time goals |
+| Away Team Score | away_goals | Authoritative | Includes extra-time goals |
+| Stadium Name | stadium_name | Authoritative | Normalized to Venue.stadium_name |
+| City Name | city | Authoritative | Map to Venue.city |
+| Country Name | country | Authoritative | Map to Venue.country |
 | Attendance | attendance | Informational | Nullable, historical gaps |
+| Extra Time | extra_time_played | Authoritative | Binary (1/0) → Boolean |
+| Penalty Shootout | decided_by_penalties | Authoritative | Binary (1/0) → Boolean |
+| Home Team Score Penalties | home_penalty_score | Authoritative | Map to Match.homePenaltyScore |
+| Away Team Score Penalties | away_penalty_score | Authoritative | Map to Match.awayPenaltyScore |
 
 ---
 
@@ -55,8 +64,6 @@ and will be derived or enriched later:
 - away_team_id
 - venue_id
 - match_status (scheduled / completed)
-- penalty_shootout_indicator
-- extra_time_indicator
 
 ---
 

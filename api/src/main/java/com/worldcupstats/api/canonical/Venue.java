@@ -1,8 +1,8 @@
 package com.worldcupstats.api.canonical;
 
-public record Stadium(
-        String id,
-        String name,
+public record Venue(
+        String venueId,
+        String stadiumName,
         String city,
         String country
 ) {
