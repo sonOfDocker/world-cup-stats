@@ -8,6 +8,9 @@ ROOT="${2:-.}"
 ROOT_ABS="$(cd "$ROOT" && pwd)"
 OUTPUT_PATH="$ROOT_ABS/$OUTPUT"
 
+# Remove existing output file if it exists
+rm -f "$OUTPUT_PATH"
+
 TMP_FILE="$(mktemp)"
 
 cleanup() {

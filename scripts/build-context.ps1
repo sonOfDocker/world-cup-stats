@@ -1,100 +1,80 @@
-param(
-    [string]$Output = "context-bundle.md",
-    [string]$Root = "."
-)
+#!/usr/bin/env pwsh
 
 $ErrorActionPreference = "Stop"
 
-# Resolve output path early so we can exclude it if it lives under the repo
-$resolvedRoot = Resolve-Path $Root
-$outputPath = Join-Path $resolvedRoot $Output
+$Output = if ($args.Length -ge 1) { $args[0] } else { "context-bundle.md" }
+$Root = if ($args.Length -ge 2) { $args[1] } else { "." }
 
-# Folders to exclude from recursive scanning
-$excludedDirectoryPatterns = @(
-    '\\.git\\',
-    '\\node_modules\\',
-    '\\target\\',
-    '\\build\\',
-    '\\out\\',
-    '\\dist\\',
-    '\\.idea\\',
-    '\\.gradle\\'
-)
+$RootAbs = (Resolve-Path $Root).Path
+$OutputPath = Join-Path $RootAbs $Output
 
-function Is-ExcludedDirectory {
-    param(
-        [string]$FullName
-    )
-
-    foreach ($pattern in $excludedDirectoryPatterns) {
-        if ($FullName -match $pattern) {
-            return $true
-        }
-    }
-
-    return $false
+# Remove existing output file if it exists
+if (Test-Path $OutputPath) {
+    Remove-Item $OutputPath -Force
 }
 
-function Get-RelativePath {
-    param(
-        [string]$BasePath,
-        [string]$FullPath
-    )
+$TempFile = New-TemporaryFile
 
-    $baseUri = New-Object System.Uri(($BasePath.TrimEnd('\') + '\'))
-    $fileUri = New-Object System.Uri($FullPath)
-    return [System.Uri]::UnescapeDataString($baseUri.MakeRelativeUri($fileUri).ToString()).Replace('/', '\')
-}
-
-# Remove prior output file so it does not append forever
-if (Test-Path $outputPath) {
-    Remove-Item $outputPath -Force
-}
-
-# Header
-@"
+try {
+    @"
 # Context Bundle
 
 Generated: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-Repository Root: $resolvedRoot
+Repository Root: $RootAbs
 
 ---
-"@ | Set-Content $outputPath
+"@ | Set-Content -Path $OutputPath
 
-# Find all markdown files recursively
-$markdownFiles = Get-ChildItem -Path $resolvedRoot -Recurse -File -Include *.md, *.markdown |
-    Where-Object {
-        $fullName = $_.FullName
+    Get-ChildItem -Path $RootAbs -Recurse -File -Include *.md, *.markdown |
+            Where-Object {
+                $_.FullName -notmatch "\\.git\\" -and
+                        $_.FullName -notmatch "\\node_modules\\" -and
+                        $_.FullName -notmatch "\\target\\" -and
+                        $_.FullName -notmatch "\\build\\" -and
+                        $_.FullName -notmatch "\\out\\" -and
+                        $_.FullName -notmatch "\\dist\\" -and
+                        $_.FullName -notmatch "\\.idea\\" -and
+                        $_.FullName -notmatch "\\.gradle\\"
+            } |
+            Sort-Object FullName |
+            Select-Object -ExpandProperty FullName |
+            Set-Content $TempFile
 
-        # Exclude generated/output file itself
-        if ($fullName -eq $outputPath) {
-            return $false
+    $FoundAny = $false
+
+    Get-Content $TempFile | ForEach-Object {
+        $file = $_
+
+        if ((Resolve-Path $file).Path -eq $OutputPath) {
+            return
         }
 
-        # Exclude unwanted directories
-        if (Is-ExcludedDirectory -FullName $fullName) {
-            return $false
-        }
+        $FoundAny = $true
 
-        return $true
-    } |
-    Sort-Object FullName
+        $relativePath = $file.Substring($RootAbs.Length + 1)
 
-if (-not $markdownFiles) {
-    Add-Content $outputPath "`nNo markdown files found.`n"
-    Write-Host "No markdown files found under $resolvedRoot"
-    exit 0
+        @"
+
+---
+# FILE: $relativePath
+---
+
+"@ | Add-Content -Path $OutputPath
+
+        Get-Content $file | Add-Content -Path $OutputPath
+    }
+
+    if (-not $FoundAny) {
+        Add-Content -Path $OutputPath "`nNo markdown files found."
+        Write-Host "No markdown files found under $RootAbs"
+        exit 0
+    }
+
+    $count = (Get-Content $TempFile | Measure-Object).Count
+
+    Write-Host "Context bundle created: $OutputPath"
+    Write-Host "Markdown files included: $count"
 }
-
-foreach ($file in $markdownFiles) {
-    $relativePath = Get-RelativePath -BasePath $resolvedRoot -FullPath $file.FullName
-
-    Add-Content $outputPath "`n`n---"
-    Add-Content $outputPath "`n# FILE: $relativePath"
-    Add-Content $outputPath "`n---`n"
-
-    Get-Content $file.FullName | Add-Content $outputPath
+finally {
+    Remove-Item $TempFile -Force
 }
-
-Write-Host "Context bundle created: $outputPath"
-Write-Host "Markdown files included: $($markdownFiles.Count)"
