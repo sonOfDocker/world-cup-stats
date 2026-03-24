@@ -40,6 +40,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
+    implementation("org.apache.commons:commons-csv:1.10.0")
     testImplementation("com.h2database:h2")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
