@@ -28,6 +28,9 @@ public class MatchMapperImpl implements MatchMapper {
         Integer homePenaltyScore = parseSafeInteger(row.homeTeamScorePenalties());
         Integer awayPenaltyScore = parseSafeInteger(row.awayTeamScorePenalties());
 
+        // Note: Full construction of Tournament and Stage canonical objects is deferred to 
+        // downstream deduplication/enrichment services (see story #20). 
+        // This mapper extracts core attributes for initial canonical representation.
         return new Match(
                 null, // matchId (internal, deferred)
                 row.matchId(),
@@ -60,7 +63,7 @@ public class MatchMapperImpl implements MatchMapper {
                 homePenaltyScore,
                 awayPenaltyScore,
                 row.scorePenalties(),
-                parseSafeInteger(row.attendance()) // Note: attendance not in WorldCupMatchCsvRow yet? I should check.
+                parseSafeInteger(row.attendance())
         );
     }
 

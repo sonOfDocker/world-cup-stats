@@ -124,6 +124,43 @@ class MatchMapperTest {
     }
 
     @Test
+    void shouldHandleMalformedDate() {
+        WorldCupMatchCsvRow row = createBaseRow()
+                .withMatchDate("invalid-date")
+                .build();
+
+        Match match = mapper.mapToMatch(row);
+
+        assertThat(match.kickoffDatetime()).isNull();
+    }
+
+    @Test
+    void shouldHandleInvalidPenaltyScore() {
+        WorldCupMatchCsvRow row = createBaseRow()
+                .withHomeTeamScorePenalties("abc")
+                .build();
+
+        Match match = mapper.mapToMatch(row);
+
+        assertThat(match.homePenaltyScore()).isNull();
+    }
+
+    @Test
+    void shouldHandleEmptyVenueAndTeamFields() {
+        WorldCupMatchCsvRow row = createBaseRow()
+                .withStadiumName("")
+                .withCityName(" ")
+                .withHomeTeamName(null)
+                .build();
+
+        Match match = mapper.mapToMatch(row);
+
+        assertThat(match.venue().stadiumName()).isEmpty();
+        assertThat(match.venue().city()).isEqualTo(" ");
+        assertThat(match.homeTeam().name()).isNull();
+    }
+
+    @Test
     void shouldHandleNullValues() {
         assertThat(mapper.mapToMatch(null)).isNull();
     }
