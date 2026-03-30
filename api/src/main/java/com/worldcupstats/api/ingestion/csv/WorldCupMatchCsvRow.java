@@ -41,6 +41,7 @@ package com.worldcupstats.api.ingestion.csv;
  * - "Home Team Win" -> homeTeamWin
  * - "Away Team Win" -> awayTeamWin
  * - "Draw" -> draw
+ * - "Attendance" -> attendance
  */
 public record WorldCupMatchCsvRow(
     String keyId,
@@ -79,6 +80,7 @@ public record WorldCupMatchCsvRow(
     String result,
     String homeTeamWin,
     String awayTeamWin,
-    String draw
+    String draw,
+    String attendance
 ) {
 }
