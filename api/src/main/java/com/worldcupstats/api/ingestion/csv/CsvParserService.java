@@ -23,7 +23,7 @@ public class CsvParserService {
             "Score", "Home Team Score", "Away Team Score", "Home Team Score Margin",
             "Away Team Score Margin", "Extra Time", "Penalty Shootout", "Score Penalties",
             "Home Team Score Penalties", "Away Team Score Penalties", "Result",
-            "Home Team Win", "Away Team Win", "Draw"
+            "Home Team Win", "Away Team Win", "Draw", "Attendance"
     );
 
     private static final CSVFormat FORMAT = CSVFormat.DEFAULT.builder()
@@ -94,7 +94,8 @@ public class CsvParserService {
                 record.get("Result"),
                 record.get("Home Team Win"),
                 record.get("Away Team Win"),
-                record.get("Draw")
+                record.get("Draw"),
+                record.get("Attendance")
         );
     }
 }
