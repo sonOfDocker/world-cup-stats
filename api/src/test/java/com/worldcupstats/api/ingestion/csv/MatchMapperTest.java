@@ -209,28 +209,115 @@ class MatchMapperTest {
         private String draw = "0";
         private String attendance = "4444";
 
-        public RowBuilder withMatchId(String matchId) { this.matchId = matchId; return this; }
-        public RowBuilder withTournamentName(String tournamentName) { this.tournamentName = tournamentName; return this; }
-        public RowBuilder withMatchDate(String matchDate) { this.matchDate = matchDate; return this; }
-        public RowBuilder withMatchTime(String matchTime) { this.matchTime = matchTime; return this; }
-        public RowBuilder withStageName(String stageName) { this.stageName = stageName; return this; }
-        public RowBuilder withStadiumName(String stadiumName) { this.stadiumName = stadiumName; return this; }
-        public RowBuilder withCityName(String cityName) { this.cityName = cityName; return this; }
-        public RowBuilder withCountryName(String countryName) { this.countryName = countryName; return this; }
-        public RowBuilder withHomeTeamName(String homeTeamName) { this.homeTeamName = homeTeamName; return this; }
-        public RowBuilder withHomeTeamCode(String homeTeamCode) { this.homeTeamCode = homeTeamCode; return this; }
-        public RowBuilder withAwayTeamName(String awayTeamName) { this.awayTeamName = awayTeamName; return this; }
-        public RowBuilder withAwayTeamCode(String awayTeamCode) { this.awayTeamCode = awayTeamCode; return this; }
-        public RowBuilder withHomeTeamScore(String homeTeamScore) { this.homeTeamScore = homeTeamScore; return this; }
-        public RowBuilder withAwayTeamScore(String awayTeamScore) { this.awayTeamScore = awayTeamScore; return this; }
-        public RowBuilder withScore(String score) { this.score = score; return this; }
-        public RowBuilder withDraw(String draw) { this.draw = draw; return this; }
-        public RowBuilder withPenaltyShootout(String penaltyShootout) { this.penaltyShootout = penaltyShootout; return this; }
-        public RowBuilder withHomeTeamScorePenalties(String homeTeamScorePenalties) { this.homeTeamScorePenalties = homeTeamScorePenalties; return this; }
-        public RowBuilder withAwayTeamScorePenalties(String awayTeamScorePenalties) { this.awayTeamScorePenalties = awayTeamScorePenalties; return this; }
-        public RowBuilder withScorePenalties(String scorePenalties) { this.scorePenalties = scorePenalties; return this; }
-        public RowBuilder withExtraTime(String extraTime) { this.extraTime = extraTime; return this; }
-        public RowBuilder withAttendance(String attendance) { this.attendance = attendance; return this; }
+        public RowBuilder withMatchId(String matchId) {
+            this.matchId = matchId;
+            return this;
+        }
+
+        public RowBuilder withTournamentName(String tournamentName) {
+            this.tournamentName = tournamentName;
+            return this;
+        }
+
+        public RowBuilder withMatchDate(String matchDate) {
+            this.matchDate = matchDate;
+            return this;
+        }
+
+        public RowBuilder withMatchTime(String matchTime) {
+            this.matchTime = matchTime;
+            return this;
+        }
+
+        public RowBuilder withStageName(String stageName) {
+            this.stageName = stageName;
+            return this;
+        }
+
+        public RowBuilder withStadiumName(String stadiumName) {
+            this.stadiumName = stadiumName;
+            return this;
+        }
+
+        public RowBuilder withCityName(String cityName) {
+            this.cityName = cityName;
+            return this;
+        }
+
+        public RowBuilder withCountryName(String countryName) {
+            this.countryName = countryName;
+            return this;
+        }
+
+        public RowBuilder withHomeTeamName(String homeTeamName) {
+            this.homeTeamName = homeTeamName;
+            return this;
+        }
+
+        public RowBuilder withHomeTeamCode(String homeTeamCode) {
+            this.homeTeamCode = homeTeamCode;
+            return this;
+        }
+
+        public RowBuilder withAwayTeamName(String awayTeamName) {
+            this.awayTeamName = awayTeamName;
+            return this;
+        }
+
+        public RowBuilder withAwayTeamCode(String awayTeamCode) {
+            this.awayTeamCode = awayTeamCode;
+            return this;
+        }
+
+        public RowBuilder withHomeTeamScore(String homeTeamScore) {
+            this.homeTeamScore = homeTeamScore;
+            return this;
+        }
+
+        public RowBuilder withAwayTeamScore(String awayTeamScore) {
+            this.awayTeamScore = awayTeamScore;
+            return this;
+        }
+
+        public RowBuilder withScore(String score) {
+            this.score = score;
+            return this;
+        }
+
+        public RowBuilder withDraw(String draw) {
+            this.draw = draw;
+            return this;
+        }
+
+        public RowBuilder withPenaltyShootout(String penaltyShootout) {
+            this.penaltyShootout = penaltyShootout;
+            return this;
+        }
+
+        public RowBuilder withHomeTeamScorePenalties(String homeTeamScorePenalties) {
+            this.homeTeamScorePenalties = homeTeamScorePenalties;
+            return this;
+        }
+
+        public RowBuilder withAwayTeamScorePenalties(String awayTeamScorePenalties) {
+            this.awayTeamScorePenalties = awayTeamScorePenalties;
+            return this;
+        }
+
+        public RowBuilder withScorePenalties(String scorePenalties) {
+            this.scorePenalties = scorePenalties;
+            return this;
+        }
+
+        public RowBuilder withExtraTime(String extraTime) {
+            this.extraTime = extraTime;
+            return this;
+        }
+
+        public RowBuilder withAttendance(String attendance) {
+            this.attendance = attendance;
+            return this;
+        }
 
         public WorldCupMatchCsvRow build() {
             return new WorldCupMatchCsvRow(

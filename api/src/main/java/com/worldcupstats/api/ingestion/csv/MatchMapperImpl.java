@@ -68,7 +68,9 @@ public class MatchMapperImpl implements MatchMapper {
     }
 
     private Integer extractYear(String tournamentName) {
-        if (tournamentName == null) return null;
+        if (tournamentName == null) {
+            return null;
+        }
         Matcher matcher = TOURNAMENT_YEAR_PATTERN.matcher(tournamentName);
         if (matcher.find()) {
             return Integer.parseInt(matcher.group(1));
@@ -77,7 +79,9 @@ public class MatchMapperImpl implements MatchMapper {
     }
 
     private String formatKickoffDatetime(String matchDate, String matchTime) {
-        if (matchDate == null || matchDate.isBlank()) return null;
+        if (matchDate == null || matchDate.isBlank()) {
+            return null;
+        }
         try {
             LocalDate date = LocalDate.parse(matchDate, CSV_DATE_FORMATTER);
             String time = (matchTime == null || matchTime.isBlank()) ? "00:00" : matchTime;
@@ -90,21 +94,33 @@ public class MatchMapperImpl implements MatchMapper {
     }
 
     private MatchResult determineResult(Integer homeGoals, Integer awayGoals, Integer homePenalties, Integer awayPenalties) {
-        if (homeGoals == null || awayGoals == null) return null;
-        if (homeGoals > awayGoals) return MatchResult.HOME_WIN;
-        if (awayGoals > homeGoals) return MatchResult.AWAY_WIN;
+        if (homeGoals == null || awayGoals == null) {
+            return null;
+        }
+        if (homeGoals > awayGoals) {
+            return MatchResult.HOME_WIN;
+        }
+        if (awayGoals > homeGoals) {
+            return MatchResult.AWAY_WIN;
+        }
         
         // If goals are equal, check penalties if they exist
         if (homePenalties != null && awayPenalties != null) {
-            if (homePenalties > awayPenalties) return MatchResult.HOME_WIN;
-            if (awayPenalties > homePenalties) return MatchResult.AWAY_WIN;
+            if (homePenalties > awayPenalties) {
+                return MatchResult.HOME_WIN;
+            }
+            if (awayPenalties > homePenalties) {
+                return MatchResult.AWAY_WIN;
+            }
         }
         
         return MatchResult.DRAW;
     }
 
     private Integer parseSafeInteger(String value) {
-        if (value == null || value.isBlank()) return null;
+        if (value == null || value.isBlank()) {
+            return null;
+        }
         try {
             return Integer.parseInt(value.trim());
         } catch (NumberFormatException e) {
