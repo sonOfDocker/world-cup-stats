@@ -31,19 +31,23 @@ Static analysis is performed using [Checkstyle](https://checkstyle.org/). Config
 Reports are generated in `build/reports/checkstyle/`.
 
 ### Running Tests
-To run the unit tests:
+To run the unit tests (fast, no integration tests):
 ```bash
 ./gradlew test
 ```
-(Note: These tests use an in-memory H2 database and do **not** require Docker).
+(Note: These tests use an in-memory H2 database and do **not** require Docker. They exclude tests tagged with `@Tag("integration")`).
 
 ### Integration Tests
-To run tests that require a real database:
+To run tests that require a real database or perform full dataset ingestion:
 1. Ensure the database is running: `docker compose up -d`
 2. Run the integration tests:
 ```bash
 ./gradlew integrationTest
 ```
+This task runs tests tagged with `@Tag("integration")`, including:
+- Database connectivity and migration checks.
+- Full Kaggle dataset ingestion integration tests.
+- Fixture-based ingestion tests for CI/CD.
 
 ### Running the API
 ```bash

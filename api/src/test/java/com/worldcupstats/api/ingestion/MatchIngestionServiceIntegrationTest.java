@@ -2,6 +2,7 @@ package com.worldcupstats.api.ingestion;
 
 import com.worldcupstats.api.ingestion.persistence.JpaMatchRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Tag("integration")
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
