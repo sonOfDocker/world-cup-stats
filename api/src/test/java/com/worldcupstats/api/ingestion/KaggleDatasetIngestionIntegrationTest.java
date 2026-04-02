@@ -4,6 +4,7 @@ import com.worldcupstats.api.canonical.MatchResult;
 import com.worldcupstats.api.ingestion.persistence.JpaMatchRepository;
 import com.worldcupstats.api.ingestion.persistence.MatchEntity;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +19,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Tag("integration")
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
@@ -55,11 +57,19 @@ class KaggleDatasetIngestionIntegrationTest {
         // 1. First match: 1930 France v Mexico
         Optional<MatchEntity> firstMatch = matchRepository.findBySourceId("M-1930-01");
         assertThat(firstMatch).isPresent();
-        assertThat(firstMatch.get().getHomeTeamName()).isEqualTo("France");
-        assertThat(firstMatch.get().getAwayTeamName()).isEqualTo("Mexico");
-        assertThat(firstMatch.get().getHomeGoals()).isEqualTo(4);
-        assertThat(firstMatch.get().getAwayGoals()).isEqualTo(1);
-        assertThat(firstMatch.get().getMatchResult()).isEqualTo(MatchResult.HOME_WIN);
+        MatchEntity match = firstMatch.get();
+        assertThat(match.getHomeTeamName()).isEqualTo("France");
+        assertThat(match.getAwayTeamName()).isEqualTo("Mexico");
+        assertThat(match.getHomeGoals()).isEqualTo(4);
+        assertThat(match.getAwayGoals()).isEqualTo(1);
+        assertThat(match.getMatchResult()).isEqualTo(MatchResult.HOME_WIN);
+        
+        // Relationship (pseudo-navigation for now, ensuring these aren't null)
+        assertThat(match.getTournamentYear()).isNotNull();
+        assertThat(match.getTournamentRound()).isNotNull();
+        assertThat(match.getStadiumName()).isNotNull();
+        assertThat(match.getHomeTeamName()).isNotNull();
+        assertThat(match.getAwayTeamName()).isNotNull();
 
         // 2. A match with penalties: 1982 West Germany v France (M-1982-50)
         // Note: In the CSV it's M-1982-50. 
@@ -87,5 +97,27 @@ class KaggleDatasetIngestionIntegrationTest {
         assertThat(final2022.get().getHomePenaltyScore()).isEqualTo(4);
         assertThat(final2022.get().getAwayPenaltyScore()).isEqualTo(2);
         assertThat(final2022.get().getMatchResult()).isEqualTo(MatchResult.HOME_WIN);
+    }
+
+    @Test
+    void shouldBeIdempotentWithFullDataset() throws IOException {
+        Path path = Paths.get(KAGGLE_CSV_PATH);
+        assertThat(path.toFile().exists()).isTrue();
+
+        // First ingestion
+        try (FileInputStream inputStream = new FileInputStream(path.toFile())) {
+            ingestionService.ingestFromStream(inputStream);
+        }
+        long initialCount = matchRepository.count();
+        assertThat(initialCount).isGreaterThan(900);
+
+        // Second ingestion
+        try (FileInputStream inputStream = new FileInputStream(path.toFile())) {
+            MatchIngestionService.IngestionResult result = ingestionService.ingestFromStream(inputStream);
+            assertThat(result.createdCount()).isEqualTo(0);
+            assertThat(result.skippedCount()).isEqualTo((int) initialCount);
+        }
+
+        assertThat(matchRepository.count()).isEqualTo(initialCount);
     }
 }
