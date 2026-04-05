@@ -1,278 +1,266 @@
-# AI Context: World Cup Stats Project
+# AI Context — World Cup Stats Platform
 
-## Project Purpose
+## Purpose
 
-This repository is a portfolio architecture project demonstrating how to build a production-style sports analytics platform.
+This document provides architectural context for AI agents contributing to the World Cup Stats Platform.
 
-The project uses historical FIFA World Cup match data to build:
+It defines:
 
-- a clean canonical domain model
-- a data ingestion pipeline
-- a Spring Boot REST API
-- analytical query endpoints
-- eventually a React visualization layer
+* system structure
+* data flow
+* domain boundaries
+* current implementation state
+* rules for implementing new features
 
-The project emphasizes:
-
-- clean architecture
-- test-driven development (TDD)
-- incremental feature delivery
-- strong data modeling practices
-
-The goal is to demonstrate how a real-world data platform evolves from **raw dataset ingestion to analytics APIs**.
+Agents must follow this context to ensure consistency, correctness, and alignment with the project roadmap.
 
 ---
 
-# Dataset Overview
+# System Overview
 
-The project currently uses a historical FIFA World Cup dataset containing **match-level data from 1930–2022**.
+The system is a data platform that ingests historical World Cup data and exposes it through an API.
 
-Typical fields include:
+The architecture follows a deterministic pipeline:
 
-- tournament name
-- match date
-- stage
-- stadium
-- city
-- home team
-- away team
-- home score
-- away score
-- extra time
-- penalties
-
-The dataset **does NOT contain player-level data**.
-
-Because of this, the initial domain model focuses on **tournaments, teams, matches, and venues**.
-
-Player-related entities may be introduced in future phases when additional datasets are added.
+CSV → Source Model → Canonical Domain → Database → API → (Future Analytics/UI)
 
 ---
 
-# Current Development Phase
+# Current Implementation State
 
-Current phase focuses on **building the historical match data foundation**.
+## Runtime Architecture
 
-Primary goals:
+* Single Spring Boot application (`api` module)
+* Ingestion pipeline is implemented **inside the API module**
+* PostgreSQL + Flyway are integrated
+* API endpoints exist and are transitioning to database-backed reads
 
-- ingest historical World Cup match data from CSV
-- define canonical domain models
-- persist canonical entities to a relational database
-- expose read-only APIs for querying match data
+## Current Focus (Epic #21)
 
-Later phases will introduce:
-
-- analytical queries and aggregations
-- performance optimization
-- observability
-- visualization dashboards
-- additional datasets (ex: player-level data)
+* Persistence hardening
+* Idempotent ingestion
+* Relationship integrity
+* Transition to DB-backed read APIs
+* Introduction of read models
 
 ---
 
-# Core Technologies
+# Data Flow
 
-Backend
+## Ingestion Pipeline
 
-- Java 21
-- Spring Boot
-- Gradle Kotlin DSL
+Kaggle CSV Dataset
+→ Kaggle Source Model
+→ Canonical Domain Model
+→ Database Persistence
 
-Testing
+## Read Path
 
-- JUnit
-- Spring Boot Test
-
-Data
-
-- CSV ingestion (initial data source)
-- relational database (persistence layer)
-
-Future additions may include:
-
-- React dashboard
-- analytics pipelines
-- additional sports datasets
+Database
+→ Repository
+→ Service
+→ Controller
+→ API Response (DTO)
 
 ---
 
-# Project Architecture
+# Layer Responsibilities
 
-The architecture follows a layered backend structure.
+## 1. Source Layer (Kaggle-Specific)
 
-Controller Layer  
-Handles REST endpoints and request validation.
+Represents raw dataset structure.
 
-Service Layer  
-Contains application logic and orchestration.
+Examples:
 
-Repository Layer  
-Handles database persistence and queries.
+* KaggleMatchCsvRow
+* KaggleWorldCupCsvParser
 
-DTO Layer  
-Separates API responses from domain entities.
+Rules:
 
----
-
-# Data Flow Architecture
-
-The system processes data through the following stages:
-
-Raw Dataset
-
-CSV dataset containing historical World Cup match data.
-
-↓
-
-Source Model
-
-Represents rows from the CSV file.
-
-↓
-
-Canonical Domain Model
-
-Normalized domain entities representing the core concepts of the system.
-
-↓
-
-Persistence Layer
-
-Canonical entities stored in a relational database.
-
-↓
-
-API Layer
-
-REST endpoints expose match, tournament, and team data.
+* Must mirror CSV structure exactly
+* Must NOT contain business logic
+* Must NOT be used outside ingestion layer
 
 ---
 
-# Domain Model
+## 2. Canonical Domain Model
 
-The current dataset supports **match-level historical data**.
+Represents the system’s core business entities.
 
-Core entities include:
+Current entities:
 
-- Tournament
-- Match
-- Team
-- Stadium
-- Stage
-- Group (if present in dataset)
+* Tournament
+* Match
+* Team
+* Venue
+* Stage
 
-Relationships:
+Rules:
 
-Tournament  
-→ contains many Matches
-
-Match  
-→ belongs to one Tournament  
-→ has one home Team  
-→ has one away Team  
-→ occurs at one Stadium  
-→ belongs to one Stage
-
-Team  
-→ participates in many Matches
-
-Stadium  
-→ location where Matches are played
+* Must be independent of CSV structure
+* Must be independent of API contracts
+* Serves as the system’s source of truth for business logic
 
 ---
 
-# Future Domain Extensions
+## 3. Persistence Layer
 
-Some entities are intentionally **not implemented yet** because the current dataset does not contain this information.
+Responsible for storing canonical entities in PostgreSQL.
 
-Future entities may include:
+Responsibilities:
 
-- Player
-- Lineup
-- GoalEvent
-- CardEvent
-- SubstitutionEvent
-- Referee
-- Manager
-
-These will require additional datasets.
+* enforce entity relationships
+* support idempotent ingestion
+* ensure no duplicate records
+* provide reliable query access
 
 ---
 
-# Data Ingestion
+## 4. API Layer
 
-Data originates from:
+Exposes data through REST endpoints.
 
-Kaggle FIFA World Cup historical match dataset.
+Structure:
 
-Pipeline:
+Controller → Service → Repository
 
-CSV  
-→ CSV Parser  
-→ Source Row Model  
-→ Canonical Domain Model  
-→ Database Persistence  
-→ API
+Responsibilities:
 
----
-
-# Engineering Principles
-
-The repository prioritizes:
-
-Test Driven Development
-
-Red → Green → Refactor commits
-
-Clean Architecture
-
-Clear separation between controller, service, repository, and domain logic.
-
-Incremental delivery
-
-Features are implemented in small, verifiable steps.
-
-Readable commits
-
-Each commit should represent a logical step forward.
+* serve data from persistence layer
+* apply domain logic
+* map domain → DTO
 
 ---
 
-# Coding Conventions
+## 5. Read Model (Emerging)
 
-Controllers should remain thin.
+Read models are optimized representations for API consumption.
 
-Business logic belongs in services.
+Rules:
 
-Repositories should only handle persistence.
-
-DTOs should be used for API responses.
-
-Domain entities should not be exposed directly in API responses.
+* may differ from canonical domain model
+* should be designed for query use cases
+* initially may mirror domain models closely
 
 ---
 
-# What Agents Should Avoid
+# Critical Architectural Rules
 
-Agents should not:
+## 1. Strict Layer Separation
 
-- rewrite unrelated modules
-- introduce unnecessary abstractions
-- change architecture without explicit instruction
-- modify unrelated packages
+Never bypass layers.
 
-Changes should remain scoped to the story being implemented.
+Correct:
+
+Source → Mapper → Domain → Repository → API
+
+Incorrect:
+
+Source → API
+Source → Database directly
+Domain → CSV
 
 ---
 
-# Key Modules
+## 2. Source vs Domain Separation
 
-Core modules expected in the repository:
+Do NOT mix Kaggle models with domain models.
 
-- CSV ingestion
-- Tournament domain
-- Match domain
-- Team domain
-- REST API layer
+Examples:
 
-Agents should locate relevant modules before implementing new features.
+* KaggleMatchCsvRow → ONLY used in ingestion
+* Match → canonical domain model
+
+---
+
+## 3. Deterministic Behavior
+
+The system must be deterministic.
+
+* Same input → same output
+* Re-running ingestion must not create duplicates
+* Mapping must not depend on external state
+
+---
+
+## 4. Idempotent Ingestion (Critical for Epic #21)
+
+Ingestion must:
+
+* avoid duplicate records
+* correctly match existing entities
+* preserve relationships
+
+This is a core requirement for all persistence-related work.
+
+---
+
+## 5. Database as Source of Truth
+
+The database is becoming the system’s primary source of truth.
+
+* API must read from database (not CSV)
+* ingestion must fully populate canonical data
+* in-memory or CSV-backed reads are transitional only
+
+---
+
+# Naming Conventions
+
+## Source Layer
+
+Use explicit source naming:
+
+* KaggleMatchCsvRow
+* KaggleWorldCupCsvParser
+
+## Domain Layer
+
+Use clean business naming:
+
+* Match
+* Team
+* Tournament
+* Venue
+* Stage
+
+## Do NOT mix naming across layers
+
+---
+
+# What NOT to Do
+
+* Do NOT introduce new domain concepts without updating canonical docs
+* Do NOT expose source models through API
+* Do NOT bypass repository layer
+* Do NOT introduce premature microservices
+* Do NOT generalize ingestion prematurely (keep Kaggle-specific for now)
+
+---
+
+# Future Direction (Awareness Only)
+
+The system is designed to evolve toward:
+
+* multi-source ingestion (other tournaments, leagues)
+* analytics layer
+* frontend visualization
+
+However:
+
+* do NOT implement future architecture prematurely
+* focus only on current story scope
+
+---
+
+# Summary for Agents
+
+When implementing stories:
+
+1. Respect layer boundaries
+2. Keep source models separate from domain models
+3. Ensure deterministic and idempotent behavior
+4. Use database as the source of truth
+5. Align all work with the current phase (Persistence Hardening & Read Enablement)
+
+This ensures consistency, scalability, and correctness across the system.
