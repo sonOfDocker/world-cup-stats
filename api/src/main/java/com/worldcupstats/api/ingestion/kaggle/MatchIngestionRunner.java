@@ -1,4 +1,4 @@
-package com.worldcupstats.api.ingestion;
+package com.worldcupstats.api.ingestion.kaggle;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

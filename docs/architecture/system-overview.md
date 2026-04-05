@@ -4,53 +4,63 @@
 
 The World Cup Stats Platform is a portfolio architecture project demonstrating how to design and implement a production-style sports analytics system using historical FIFA World Cup data.
 
-The system ingests raw match data, transforms it into a clean canonical domain model, exposes the data through a Spring Boot API, and will eventually power an interactive analytics dashboard.
+The system ingests raw match data, transforms it into a clean canonical domain model, persists the data, and exposes it through a Spring Boot API. The platform will later power an interactive analytics dashboard.
 
 The primary goal of the project is to showcase strong engineering practices including:
 
-- Clean architecture
-- Test-driven development (TDD)
-- Incremental feature delivery
-- Data ingestion pipelines
-- API design
-- analytics-ready domain modeling
+* Clean architecture
+* Test-driven development (TDD)
+* Incremental feature delivery
+* Data ingestion pipelines
+* API design
+* analytics-ready domain modeling
+
+---
+
+# Architectural Status
+
+## Current State
+
+* Monorepo structure with a primary **Spring Boot backend (`api`)**
+* Ingestion logic lives **inside the `api` module** as an internal subsystem
+* CSV parsing and source-to-canonical mapping are implemented
+* Canonical domain model is defined
+* PostgreSQL + Flyway integration exists
+* Work is in progress to make ingestion **idempotent and persistence-safe**
+
+## Near-Term Focus (Epic #21)
+
+* Harden persistence layer
+* Ensure idempotent ingestion into database
+* Establish reliable entity relationships
+* Enable read APIs backed by persisted data
+* Introduce initial read model patterns
+
+## Future Evolution
+
+* Analytics layer (aggregations, metrics)
+* React-based visualization dashboard
+* Potential extraction of ingestion into a separate service (if justified)
 
 ---
 
 # High-Level System Architecture
 
-The system follows a layered architecture with a clear separation between data ingestion, domain modeling, API access, and future analytics capabilities.
+The system follows a layered architecture with clear separation between ingestion, domain modeling, persistence, and API access.
 
-        +-----------------------------+
-        | Kaggle World Cup Dataset    |
-        | (CSV Files)                 |
-        +--------------+--------------+
-                       |
-                       v
-            +-----------------------+
-            | Data Ingestion Layer  |
-            | CSV Parsing Pipeline  |
-            +-----------+-----------+
-                        |
-                        v
-            +-----------------------+
-            | Canonical Domain      |
-            | Model                 |
-            +-----------+-----------+
-                        |
-                        v
-            +-----------------------+
-            | Spring Boot API       |
-            | REST Endpoints        |
-            +-----------+-----------+
-                        |
-                        v
-            +-----------------------+
-            | Future Analytics      |
-            | & Visualization       |
-            | (React Dashboard)     |
-            +-----------------------+
-
+```
+Kaggle Dataset (CSV)
+        ↓
+Ingestion Layer (inside API)
+        ↓
+Canonical Domain Model
+        ↓
+PostgreSQL Database
+        ↓
+Spring Boot API
+        ↓
+Future Analytics / React UI
+```
 
 ---
 
@@ -58,307 +68,172 @@ The system follows a layered architecture with a clear separation between data i
 
 ## 1. Data Source Layer
 
-The initial data source for the system is the public **FIFA World Cup dataset available on Kaggle**.
+The system consumes historical data from the FIFA World Cup dataset (Kaggle).
 
-This dataset includes historical records of:
+This dataset includes:
 
-- World Cup tournaments
-- matches
-- teams
-- goals
-- statistics
-
-The dataset is provided as CSV files and serves as the raw input to the platform.
-
-Future extensions may introduce:
-
-- real-time match data
-- external sports APIs
-- additional historical datasets
+* tournaments
+* matches
+* teams
+* match metadata
 
 ---
 
-## 2. Data Ingestion Layer
+## 2. Data Ingestion Layer (Internal to API)
 
-The ingestion layer is responsible for transforming raw data into structured domain objects used by the platform.
+The ingestion layer is implemented **inside the Spring Boot `api` module**.
 
-Initial implementation:
+Responsibilities:
 
-    CSV Files
+* read CSV datasets
+* parse structured records
+* validate input data
+* map source rows to canonical entities
 
-        ↓
+Pipeline:
 
-    CSV Parser
+CSV → Parser → Source Row → Canonical Domain
 
-        ↓
+Notes:
 
-    Canonical Domain Model
-
-
-Responsibilities of the ingestion layer include:
-
-- reading CSV datasets
-- parsing structured records
-- validating data
-- mapping records to domain entities
-
-Future iterations of the ingestion layer will support:
-
-- database persistence
-- incremental dataset updates
-- data quality validation
+* batch-style processing
+* deterministic behavior
+* designed for idempotency
 
 ---
 
-## 3. Domain Model
+## 3. Canonical Domain Model
 
-The domain model represents the core concepts of international football tournaments and match statistics.
+Core entities (current scope):
 
-Key entities include:
+* Team
+* Match
+* Tournament
+* Venue
+* Stage
 
-- **Team**
-- **Match**
-- **Tournament**
-- **Player**
-- **MatchStatistics**
+Characteristics:
 
-These entities form the canonical representation of the dataset used throughout the system.
-
-Example relationships:
-
-    Tournament
-    └── Matches
-
-    Match
-    ├── Home Team
-    ├── Away Team
-    └── Match Statistics
-
-
-The domain model is intentionally designed to remain independent from API and persistence concerns.
+* independent of CSV structure
+* independent of API representation
+* single source of truth for business logic
 
 ---
 
-## 4. Backend API Layer
+## 4. Persistence Layer
 
-The backend API is implemented using **Spring Boot** and exposes the platform's data through RESTful endpoints.
+Canonical entities are stored in PostgreSQL.
+
+Responsibilities:
+
+* persist canonical entities
+* enforce relationships
+* support idempotent ingestion
+* enable efficient reads
+
+Goals:
+
+* no duplicate records
+* consistent relationships
+* deterministic results
+
+---
+
+## 5. Backend API Layer
+
+Implemented using Spring Boot.
 
 Example endpoints:
 
-    GET /teams
-    GET /matches
-    GET /tournaments
-    GET /statistics
+GET /teams
+GET /matches
+GET /tournaments
 
+Structure:
 
-The API architecture follows a layered structure:
-    
-    Controller Layer
-        ↓
-    Service Layer
-        ↓
-    Repository Layer
+Controller → Service → Repository
 
+Responsibilities:
 
-### Controller Layer
-
-Responsible for:
-
-- defining REST endpoints
-- handling HTTP requests
-- returning API responses
-
-Controllers remain thin and delegate business logic to services.
+* serve persisted data
+* apply domain logic
+* transform domain → DTO
+* maintain stable API contracts
 
 ---
 
-### Service Layer
+## 6. Read Model (Emerging)
 
-The service layer contains the core business logic of the system.
+As persistence becomes the source of truth, the system introduces read models.
 
-Responsibilities include:
+Read models:
 
-- coordinating data access
-- performing transformations
-- implementing domain logic
-- preparing responses for the API layer
+* optimized for query use
+* may differ from canonical models
+* served via API
 
----
-
-### Repository Layer
-
-The repository layer handles persistence operations.
-
-Initial implementation may operate on in-memory or parsed datasets.
-
-Future iterations will integrate with a relational database.
-
----
-
-### DTO Layer
-
-Data Transfer Objects (DTOs) are used to prevent domain entities from being exposed directly through the API.
-
-DTOs provide:
-
-- API response formatting
-- decoupling between domain model and API contract
-- versioning flexibility
+Initial versions will closely mirror domain entities.
 
 ---
 
 # Future System Components
 
-The project roadmap includes several planned extensions.
-
-## Relational Database
-
-Later phases will introduce a relational database to persist canonical data.
-
-Possible technologies include:
-
-- PostgreSQL
-- Dockerized database environment
-
-Updated pipeline:
-
-    CSV Dataset
-        ↓
-    Ingestion Pipeline
-        ↓
-    Canonical Model
-        ↓
-    Relational Database
-        ↓
-    Spring Boot API
-
----
-
 ## Analytics Layer
 
-Future versions of the platform will include advanced analytics features such as:
-
-- team performance metrics
-- historical match trends
-- tournament comparisons
-- statistical summaries
-
-These analytics endpoints will be exposed through the API and consumed by a frontend dashboard.
-
----
+* team performance metrics
+* match statistics
+* tournament comparisons
 
 ## Visualization Layer
 
-The final phase of the project will introduce a web-based analytics dashboard.
+React dashboard for:
 
-Planned technology:
-
-- React
-
-The dashboard will consume the backend API and present:
-
-- match statistics
-- tournament summaries
-- team performance data
-- interactive charts
+* charts
+* insights
+* exploration
 
 ---
 
 # Engineering Principles
 
-The project emphasizes strong engineering discipline and production-style development workflows.
+## Test-Driven Development
 
-Key principles include:
-
-## Test-Driven Development (TDD)
-
-Features are implemented using the TDD cycle:
-
-    Red → Green → Refactor
-
-
-Each feature begins with a failing test before implementation.
-
----
+Red → Green → Refactor
 
 ## Clean Architecture
 
-The system maintains strict separation between:
+Separation between:
 
-- controllers
-- services
-- repositories
-- domain models
-
-This promotes maintainability and scalability.
-
----
+* ingestion
+* domain
+* persistence
+* API
 
 ## Incremental Development
 
-The system is developed in small, logical steps using GitHub issues and project boards.
-
-Each commit should represent a meaningful change aligned with a feature or story.
+Work progresses in small, well-defined stories and epics.
 
 ---
 
 # Technology Stack
 
-### Backend
+Backend:
 
-- Java 21
-- Spring Boot
-- Gradle Kotlin DSL
+* Java 21
+* Spring Boot
+* Gradle
 
-### Testing
+Data:
 
-- JUnit
-- Spring Boot Test
+* CSV ingestion
+* PostgreSQL
+* Flyway
 
-### Data
+Testing:
 
-- CSV ingestion (initial)
-- relational database (future phase)
+* JUnit
+* Spring Boot Test
 
-### Frontend (future)
+Frontend (future):
 
-- React
-
----
-
-# Repository Structure
-
-The repository is organized to separate documentation, services, data pipelines, and infrastructure components.
-
-Example structure:
-
-    docs/
-    └── architecture/
-    └── diagrams/
-
-    services/
-    api/
-    web/
-
-    data/
-    └── raw/
-    └── processed/
-
-    infrastructure/
-    docker/
-
-
----
-
-# Project Goals
-
-This repository aims to demonstrate the following engineering capabilities:
-
-- designing a clean domain model
-- building maintainable APIs
-- implementing data ingestion pipelines
-- applying TDD workflows
-- structuring production-style repositories
-- documenting system architecture clearly
-
-The project is intentionally designed to evolve in phases, mirroring how real engineering systems grow over time.
+* React

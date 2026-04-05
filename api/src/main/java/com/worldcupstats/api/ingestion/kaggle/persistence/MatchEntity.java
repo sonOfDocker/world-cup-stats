@@ -1,4 +1,4 @@
-package com.worldcupstats.api.ingestion.persistence;
+package com.worldcupstats.api.ingestion.kaggle.persistence;
 
 import com.worldcupstats.api.canonical.MatchResult;
 import jakarta.persistence.Column;

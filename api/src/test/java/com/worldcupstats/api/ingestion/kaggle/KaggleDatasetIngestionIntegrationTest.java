@@ -1,8 +1,8 @@
-package com.worldcupstats.api.ingestion;
+package com.worldcupstats.api.ingestion.kaggle;
 
 import com.worldcupstats.api.canonical.MatchResult;
-import com.worldcupstats.api.ingestion.persistence.JpaMatchRepository;
-import com.worldcupstats.api.ingestion.persistence.MatchEntity;
+import com.worldcupstats.api.ingestion.kaggle.persistence.JpaMatchRepository;
+import com.worldcupstats.api.ingestion.kaggle.persistence.MatchEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.worldcupstats.api.ingestion.csv;
+package com.worldcupstats.api.ingestion.kaggle.csv;
 
 import com.worldcupstats.api.canonical.Match;
 import com.worldcupstats.api.canonical.MatchResult;
@@ -18,7 +18,7 @@ public class MatchMapperImpl implements MatchMapper {
     private static final Pattern TOURNAMENT_YEAR_PATTERN = Pattern.compile("^(\\d{4})");
 
     @Override
-    public Match mapToMatch(WorldCupMatchCsvRow row) {
+    public Match mapToMatch(KaggleMatchCsvRow row) {
         if (row == null) {
             return null;
         }

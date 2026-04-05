@@ -1,4 +1,4 @@
-package com.worldcupstats.api.ingestion.csv;
+package com.worldcupstats.api.ingestion.kaggle.csv;
 
 /**
  * Represents a single raw row from the World Cup matches CSV.
@@ -43,7 +43,7 @@ package com.worldcupstats.api.ingestion.csv;
  * - "Draw" -> draw
  * - "Attendance" -> attendance
  */
-public record WorldCupMatchCsvRow(
+public record KaggleMatchCsvRow(
     String keyId,
     String tournamentId,
     String tournamentName,

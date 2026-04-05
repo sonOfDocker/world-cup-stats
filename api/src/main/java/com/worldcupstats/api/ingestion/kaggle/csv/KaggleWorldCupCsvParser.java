@@ -1,4 +1,4 @@
-package com.worldcupstats.api.ingestion.csv;
+package com.worldcupstats.api.ingestion.kaggle.csv;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 
 @Service
-public class CsvParserService {
+public class KaggleWorldCupCsvParser {
 
     private static final List<String> REQUIRED_HEADERS = Arrays.asList(
             "Key Id", "Tournament Id", "tournament Name", "Match Id", "Match Name",
@@ -33,7 +33,7 @@ public class CsvParserService {
             .setTrim(true)
             .build();
 
-    public List<WorldCupMatchCsvRow> parseMatches(Reader reader) throws IOException {
+    public List<KaggleMatchCsvRow> parseMatches(Reader reader) throws IOException {
         try (CSVParser parser = FORMAT.parse(reader)) {
             validateHeaders(parser);
             return StreamSupport.stream(parser.spliterator(), false)
@@ -56,8 +56,8 @@ public class CsvParserService {
         }
     }
 
-    private WorldCupMatchCsvRow mapToRow(CSVRecord record) {
-        return new WorldCupMatchCsvRow(
+    private KaggleMatchCsvRow mapToRow(CSVRecord record) {
+        return new KaggleMatchCsvRow(
                 record.get("Key Id"),
                 record.get("Tournament Id"),
                 record.get("tournament Name"),

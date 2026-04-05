@@ -1,4 +1,4 @@
-package com.worldcupstats.api.ingestion.csv;
+package com.worldcupstats.api.ingestion.kaggle.csv;
 
 import com.worldcupstats.api.canonical.Match;
 
@@ -11,5 +11,5 @@ public interface MatchMapper {
      * @param row the raw CSV row
      * @return the canonical Match entity
      */
-    Match mapToMatch(WorldCupMatchCsvRow row);
+    Match mapToMatch(KaggleMatchCsvRow row);
 }

@@ -1,4 +1,4 @@
-package com.worldcupstats.api.ingestion.csv;
+package com.worldcupstats.api.ingestion.kaggle.csv;
 
 import com.worldcupstats.api.canonical.Match;
 import com.worldcupstats.api.canonical.MatchResult;
@@ -12,7 +12,7 @@ class MatchMapperTest {
 
     @Test
     void shouldMapBasicMatchData() {
-        WorldCupMatchCsvRow row = createBaseRow()
+        KaggleMatchCsvRow row = createBaseRow()
                 .withMatchId("M-1930-01")
                 .withTournamentName("1930 FIFA World Cup")
                 .withMatchDate("7/13/1930")
@@ -56,7 +56,7 @@ class MatchMapperTest {
 
     @Test
     void shouldHandleDraw() {
-        WorldCupMatchCsvRow row = createBaseRow()
+        KaggleMatchCsvRow row = createBaseRow()
                 .withHomeTeamScore("1")
                 .withAwayTeamScore("1")
                 .withDraw("1")
@@ -70,7 +70,7 @@ class MatchMapperTest {
 
     @Test
     void shouldHandleAwayWin() {
-        WorldCupMatchCsvRow row = createBaseRow()
+        KaggleMatchCsvRow row = createBaseRow()
                 .withHomeTeamScore("1")
                 .withAwayTeamScore("2")
                 .build();
@@ -82,7 +82,7 @@ class MatchMapperTest {
 
     @Test
     void shouldHandlePenalties() {
-        WorldCupMatchCsvRow row = createBaseRow()
+        KaggleMatchCsvRow row = createBaseRow()
                 .withHomeTeamScore("1")
                 .withAwayTeamScore("1")
                 .withPenaltyShootout("1")
@@ -102,7 +102,7 @@ class MatchMapperTest {
 
     @Test
     void shouldHandleExtraTime() {
-        WorldCupMatchCsvRow row = createBaseRow()
+        KaggleMatchCsvRow row = createBaseRow()
                 .withExtraTime("1")
                 .build();
 
@@ -113,7 +113,7 @@ class MatchMapperTest {
 
     @Test
     void shouldHandleMissingTime() {
-        WorldCupMatchCsvRow row = createBaseRow()
+        KaggleMatchCsvRow row = createBaseRow()
                 .withMatchDate("7/13/1930")
                 .withMatchTime("")
                 .build();
@@ -125,7 +125,7 @@ class MatchMapperTest {
 
     @Test
     void shouldHandleMalformedDate() {
-        WorldCupMatchCsvRow row = createBaseRow()
+        KaggleMatchCsvRow row = createBaseRow()
                 .withMatchDate("invalid-date")
                 .build();
 
@@ -136,7 +136,7 @@ class MatchMapperTest {
 
     @Test
     void shouldHandleInvalidPenaltyScore() {
-        WorldCupMatchCsvRow row = createBaseRow()
+        KaggleMatchCsvRow row = createBaseRow()
                 .withHomeTeamScorePenalties("abc")
                 .build();
 
@@ -147,7 +147,7 @@ class MatchMapperTest {
 
     @Test
     void shouldHandleEmptyVenueAndTeamFields() {
-        WorldCupMatchCsvRow row = createBaseRow()
+        KaggleMatchCsvRow row = createBaseRow()
                 .withStadiumName("")
                 .withCityName(" ")
                 .withHomeTeamName(null)
@@ -319,8 +319,8 @@ class MatchMapperTest {
             return this;
         }
 
-        public WorldCupMatchCsvRow build() {
-            return new WorldCupMatchCsvRow(
+        public KaggleMatchCsvRow build() {
+            return new KaggleMatchCsvRow(
                     keyId, tournamentId, tournamentName, matchId, matchName, stageName, groupName, groupStage, knockoutStage,
                     replayed, replay, matchDate, matchTime, stadiumId, stadiumName, cityName, countryName,
                     homeTeamId, homeTeamName, homeTeamCode, awayTeamId, awayTeamName, awayTeamCode,

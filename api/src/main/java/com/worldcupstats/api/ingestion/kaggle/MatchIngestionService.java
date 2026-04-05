@@ -1,11 +1,11 @@
-package com.worldcupstats.api.ingestion;
+package com.worldcupstats.api.ingestion.kaggle;
 
 import com.worldcupstats.api.canonical.Match;
-import com.worldcupstats.api.ingestion.csv.CsvParserService;
-import com.worldcupstats.api.ingestion.csv.MatchMapper;
-import com.worldcupstats.api.ingestion.csv.WorldCupMatchCsvRow;
-import com.worldcupstats.api.ingestion.persistence.JpaMatchRepository;
-import com.worldcupstats.api.ingestion.persistence.MatchEntity;
+import com.worldcupstats.api.ingestion.kaggle.csv.KaggleWorldCupCsvParser;
+import com.worldcupstats.api.ingestion.kaggle.csv.MatchMapper;
+import com.worldcupstats.api.ingestion.kaggle.csv.KaggleMatchCsvRow;
+import com.worldcupstats.api.ingestion.kaggle.persistence.JpaMatchRepository;
+import com.worldcupstats.api.ingestion.kaggle.persistence.MatchEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -23,14 +23,14 @@ public class MatchIngestionService {
 
     private static final Logger log = LoggerFactory.getLogger(MatchIngestionService.class);
 
-    private final CsvParserService csvParserService;
+    private final KaggleWorldCupCsvParser kaggleWorldCupCsvParser;
     private final MatchMapper matchMapper;
     private final JpaMatchRepository matchRepository;
 
-    public MatchIngestionService(CsvParserService csvParserService,
-                                MatchMapper matchMapper,
-                                JpaMatchRepository matchRepository) {
-        this.csvParserService = csvParserService;
+    public MatchIngestionService(KaggleWorldCupCsvParser kaggleWorldCupCsvParser,
+                                 MatchMapper matchMapper,
+                                 JpaMatchRepository matchRepository) {
+        this.kaggleWorldCupCsvParser = kaggleWorldCupCsvParser;
         this.matchMapper = matchMapper;
         this.matchRepository = matchRepository;
     }
@@ -40,13 +40,13 @@ public class MatchIngestionService {
         log.info("Starting match ingestion from stream...");
         
         try (Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
-            List<WorldCupMatchCsvRow> rows = csvParserService.parseMatches(reader);
+            List<KaggleMatchCsvRow> rows = kaggleWorldCupCsvParser.parseMatches(reader);
             log.info("Parsed {} rows from CSV", rows.size());
             
             int createdCount = 0;
             int skippedCount = 0;
             
-            for (WorldCupMatchCsvRow row : rows) {
+            for (KaggleMatchCsvRow row : rows) {
                 if (matchRepository.existsBySourceId(row.matchId())) {
                     log.debug("Skipping match with sourceId {} (already exists)", row.matchId());
                     skippedCount++;

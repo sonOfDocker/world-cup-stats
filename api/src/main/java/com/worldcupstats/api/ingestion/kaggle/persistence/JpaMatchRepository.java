@@ -1,4 +1,4 @@
-package com.worldcupstats.api.ingestion.persistence;
+package com.worldcupstats.api.ingestion.kaggle.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
