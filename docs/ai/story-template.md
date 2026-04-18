@@ -1,114 +1,152 @@
-# AI Story Template
-
-## Purpose
-
-This template defines the standard structure for all stories used by AI agents in the development workflow.
-
-The goal is to ensure stories are:
-- Clear
-- Testable
-- Unambiguous
-- Implementation-ready
+# 📘 Story Template (Enforced)
 
 ---
 
-## Template
-
-### Title
-
-`[STORY] <Concise, action-oriented title>`
+## 🧾 Story Title
+REQUIRED
 
 ---
 
-### Description
+## 🎯 Objective
 
-As a <user/developer>,  
-I want <capability>,  
-so that <outcome/value>.
-
----
-
-### Acceptance Criteria
-
-- Clearly defined, testable behaviors
-- Each criterion must be verifiable
-- Avoid vague language
-
-#### Example Format
-
-- When <condition>, the system <behavior>
-- Given <input>, the system returns <output>
-- Re-running <process> does not create duplicate records
+REQUIRED:
+- What is being built
+- Why it matters
+- What behavior changes
 
 ---
 
-### Technical Notes
+## 📦 Scope
 
-- Implementation guidance (if necessary)
-- References to:
-    - Domain models
-    - Contracts
-    - Existing services
-- Constraints or assumptions
+### ✅ In Scope
+- 
 
----
-
-### Constraints (Optional)
-
-- Performance requirements
-- Data integrity rules
-- Technology restrictions
+### 🚫 Out of Scope
+- 
 
 ---
 
-### Definition of Done
+## 🧠 Context
 
-- All acceptance criteria are satisfied
-- Code compiles and runs
-- Tests are implemented and passing
-- No major code smells or architectural violations
-- Changes are committed and documented
-
----
-
-## Example Story
-
-### Title
-
-`[STORY] Persist Match Data from Canonical Model`
+REQUIRED:
+- Domain references
+- Dependencies
+- Assumptions
 
 ---
 
-### Description
+## 📜 Acceptance Criteria
 
-As a developer,  
-I want to persist match data from the canonical model into the database,  
-so that ingested data is stored reliably and can be queried later.
+REQUIRED:
+Each item must be testable.
 
----
-
-### Acceptance Criteria
-
-- Given a valid canonical match, it is persisted in the database
-- Re-running ingestion does not create duplicate match records
-- Match is correctly linked to:
-    - Tournament
-    - Teams
-    - Venue
-- Invalid data does not break the ingestion pipeline
+- [ ] 
+- [ ] 
+- [ ] 
 
 ---
 
-### Technical Notes
+## 🏗️ Technical Notes
 
-- Use Spring Data JPA repositories
-- Ensure idempotency via unique constraints or lookup strategy
-- Follow existing entity mappings
+REQUIRED for non-trivial stories:
+
+- Data models:
+- Services:
+- Constraints:
+- Risks:
 
 ---
 
-### Definition of Done
+## 🧪 Test Strategy
 
-- Matches are persisted correctly
-- Idempotency is verified via tests
-- Integration test confirms relationships
+### Approach (select one)
+- [ ] Unit-first (TDD)
+- [ ] Integration-first
+- [ ] Mixed
+
+---
+
+### Test Scenarios
+
+#### Happy Path
+- 
+
+#### Edge Cases
+- 
+
+#### Negative Cases
+- 
+
+#### Regression Risks
+- 
+
+---
+
+## 🔴 Red Phase (Required for logic-heavy stories)
+
+### Failing Test Definition
+
+    @Test
+    void should_fail_until_behavior_is_implemented() {
+        // expected failure
+    }
+
+---
+
+## 💻 Implementation Plan
+
+- Steps:
+- Key decisions:
+- Trade-offs:
+
+---
+
+## 🟢 Definition of Done (MEASURABLE)
+
+ALL must be satisfied:
+
+- [ ] All acceptance criteria pass via tests
+- [ ] All tests pass
+- [ ] Tests cover:
+  - [ ] Happy path
+  - [ ] Edge cases
+  - [ ] Negative cases
+- [ ] No failing or skipped tests
+- [ ] Code compiles successfully
+- [ ] Build completes without errors
+- [ ] Passes project linting / static analysis rules
+- [ ] No TODOs or placeholder logic remain
+
+---
+
+## 🔍 Test Validation (Test Agent)
+
+- [ ] All acceptance criteria mapped to tests
+- [ ] Tests validate behavior (not just execution)
+- [ ] Edge cases covered
+- [ ] No weak or misleading assertions
+
+---
+
+## 🔁 Iteration Notes
+
+If issues are found:
+
+- Test Agent → returns to Developer
+- Reviewer → returns to Developer
+
+Story is NOT complete until all checks pass.
+
+---
+
+## 🧾 Final Review (Reviewer)
+
+### Validation
+
+- [ ] Code compiles
+- [ ] Tests executed and passed
+- [ ] Behavior matches acceptance criteria
+
+### Decision
+- [ ] Approved
+- [ ] Changes Requested

@@ -1,172 +1,171 @@
-# AI Agent Roles & Responsibilities
-
-## Purpose
-
-This document defines the roles and responsibilities of AI agents used in the development workflow for the World Cup Stats project.
-
-The goal is to create a structured, repeatable system where each agent has a clear responsibility, reducing ambiguity and improving output quality.
-
-These roles are tool-agnostic and can be implemented using CrewAI or other orchestration systems.
+# 🤖 Agent Roles & Responsibilities (Enforced)
 
 ---
 
-## 1. Architect Agent
+## 🧠 Core Principle
 
-### Purpose
-Define system design, technical direction, and ensure alignment with overall architecture and long-term goals.
+> Responsibility is separated by **phase**, not artifact type.
 
-### Inputs
-- Existing system design documents
-- Current codebase structure
-- Epic and story requirements
+- Test Agent defines **what should be tested**
+- Developer Agent implements **code and tests required to pass**
+- Reviewer validates **quality and completeness**
+- No role has ambiguous ownership
 
-### Outputs
-- Architecture decisions
-- Technical guidance
-- Refined system design recommendations
+---
+
+## 🔁 Workflow (Iterative, Not Linear)
+
+1. Architect / Story Refiner
+2. Test Agent (Test Strategy + Optional Red Phase)
+3. Developer Agent (Implementation + Tests)
+4. Test Agent (Validation Review)
+5. Reviewer Agent (Final Review)
+
+### Iteration Rule
+
+If issues are found:
+- Test Agent → sends back to Developer
+- Reviewer → sends back to Developer
+
+This loop continues until:
+- All acceptance criteria are met
+- Tests are valid and meaningful
+- Code quality meets standards
+
+A story is NOT complete until all agents approve.
+
+---
+
+## 📘 Architect / Story Refiner Agent
 
 ### Responsibilities
-- Ensure consistency with system architecture
-- Identify trade-offs and risks
-- Guide design decisions across services, data models, and APIs
-- Validate that stories align with long-term vision
+- Define:
+  - Scope
+  - Acceptance criteria
+  - Technical constraints
+- Select test approach (TDD / Integration / Mixed)
 
-### Boundaries
-- Does NOT write production code
-- Does NOT implement stories directly
-- Does NOT perform detailed test validation
+### Boundary
+- DOES NOT participate in implementation
+- ONLY engaged for:
+  - New patterns
+  - Domain model changes
+  - Architectural decisions
 
 ---
 
-## 2. Story Refiner Agent
-
-### Purpose
-Transform high-level or vague stories into clear, testable, implementation-ready stories.
-
-### Inputs
-- Raw or draft GitHub stories
-- Epic descriptions
-- Architectural constraints
-
-### Outputs
-- Refined stories with:
-    - Clear acceptance criteria
-    - Technical notes
-    - Defined scope
+## 🧪 Test Agent
 
 ### Responsibilities
-- Remove ambiguity from stories
-- Ensure acceptance criteria are testable and explicit
-- Align stories with architecture and domain model
-- Break down overly large stories when necessary
 
-### Boundaries
-- Does NOT write production code
-- Does NOT execute tests
-- Does NOT make architectural decisions independently
+Owns:
+- Test strategy
+- Test scenario design
+- Coverage validation
+
+### Before Implementation
+- Define:
+  - Happy path
+  - Edge cases
+  - Negative cases
+  - Regression risks
+- Optionally provide failing tests (Red Phase)
+
+### After Implementation
+- Validate:
+  - All acceptance criteria are tested
+  - Edge cases are covered
+  - Tests are meaningful (not superficial)
+
+### Boundary
+
+- DOES NOT own final test implementation
+- DOES NOT maintain test files long-term
+- DOES NOT implement production code
+
+> The Test Agent defines correctness, not code.
 
 ---
 
-## 3. Developer Agent
-
-### Purpose
-Implement production-ready code based on refined stories.
-
-### Inputs
-- Refined story
-- Acceptance criteria
-- Existing codebase
-- Relevant context (domain models, contracts, etc.)
-
-### Outputs
-- Source code
-- Supporting classes/services
-- Initial implementation of tests (if required)
+## 💻 Developer Agent
 
 ### Responsibilities
-- Translate acceptance criteria into working code
-- Follow project conventions (Spring Boot, Java 21, etc.)
-- Maintain clean, readable, maintainable code
-- Respect domain model and contracts
 
-### Boundaries
-- Does NOT redefine requirements
-- Does NOT skip acceptance criteria
-- Does NOT approve its own work
+Owns:
+- Production code
+- Test implementation required for completion
+
+### During Implementation
+- Write and update tests as needed to:
+  - Satisfy acceptance criteria
+  - Support refactoring
+  - Achieve passing state
+
+### Boundary
+
+- MUST NOT ignore Test Agent strategy
+- MUST ensure:
+  - Tests pass
+  - Tests validate real behavior
+
+> The Developer Agent owns delivery of working, tested code.
 
 ---
 
-## 4. Reviewer Agent
-
-### Purpose
-Review implemented code to ensure quality, correctness, and alignment with standards.
-
-### Inputs
-- Implemented code
-- Original story and acceptance criteria
-
-### Outputs
-- Review feedback
-- Suggested improvements
-- Identified risks or issues
+## 🔍 Reviewer Agent
 
 ### Responsibilities
-- Validate correctness of implementation
-- Identify code smells and anti-patterns
-- Ensure alignment with architecture and standards
-- Check for missing edge cases or incomplete logic
 
-### Boundaries
-- Does NOT directly modify code (only suggests changes)
-- Does NOT redefine story requirements
-- Does NOT execute tests
+Owns final validation of:
 
----
+- Code quality
+- Design alignment
+- Test quality
+- Story completeness
 
-## 5. Test Agent
+### What Reviewer MUST Do
 
-### Purpose
-Validate that the implementation satisfies acceptance criteria through testing.
+- Run the build
+- Execute tests
+- Verify:
+  - Code compiles
+  - Tests pass
+  - Behavior matches acceptance criteria
 
-### Inputs
-- Refined story
-- Implemented code
-- Acceptance criteria
+### Boundary
 
-### Outputs
-- Test cases (unit/integration)
-- Validation results
-- Identified failures or gaps
+- DOES NOT rewrite large portions of code
+- DOES NOT introduce new features
 
-### Responsibilities
-- Create or validate tests based on acceptance criteria
-- Ensure coverage of edge cases
-- Verify idempotency, relationships, and data integrity where applicable
-- Confirm behavior matches expected outcomes
-
-### Boundaries
-- Does NOT change production code
-- Does NOT redefine requirements
-- Does NOT perform architectural decisions
+> Reviewer validates execution, not just inspection.
 
 ---
 
-## Workflow Overview (High-Level)
+## ⚖️ Responsibility Summary
 
-1. Architect Agent → validates direction
-2. Story Refiner Agent → prepares story
-3. Developer Agent → implements solution
-4. Reviewer Agent → critiques implementation
-5. Test Agent → validates correctness
-
-Human oversight is required at all stages.
+| Area                  | Owner            |
+|-----------------------|------------------|
+| Test Strategy         | Test Agent       |
+| Test Implementation   | Developer Agent  |
+| Production Code       | Developer Agent  |
+| Test Validation       | Test Agent       |
+| Execution Verification| Reviewer Agent   |
+| Architecture Decisions| Architect Agent  |
 
 ---
 
-## Guiding Principles
+## 🚫 Anti-Patterns
 
-- Human-in-the-loop is mandatory
-- Clear inputs and outputs for every agent
-- No overlapping responsibilities
-- Deterministic and repeatable workflows
-- Prefer clarity over cleverness
+DO NOT:
+- Split tests and code ownership rigidly
+- Allow Reviewer to approve without running tests
+- Allow stories to complete without iteration
+
+---
+
+## ✅ Final Rule
+
+> A story is complete ONLY when:
+- Acceptance criteria are satisfied
+- Tests pass and are meaningful
+- All agents approve
