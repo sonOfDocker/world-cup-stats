@@ -73,7 +73,7 @@ function Add-SectionHeader {
 
 ## $Title
 
-    $Description
+$Description
 
 "@ | Add-Content -Path $Path
 }

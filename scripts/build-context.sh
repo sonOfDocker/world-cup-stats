@@ -11,15 +11,22 @@ OUTPUT_PATH="$ROOT_ABS/$OUTPUT"
 
 normalize_path() {
   local path_value="$1"
-  python3 - <<'PY' "$path_value"
-import os, sys
-print(os.path.abspath(sys.argv[1]))
-PY
+  local abs_path
+  if [[ -d "$path_value" ]]; then
+    abs_path="$(cd "$path_value" && pwd)"
+  else
+    local dir
+    dir="$(dirname "$path_value")"
+    local base
+    base="$(basename "$path_value")"
+    abs_path="$(cd "$dir" && pwd)/$base"
+  fi
+  echo "$abs_path"
 }
 
 is_excluded_path() {
   local full_path
-  full_path="$(normalize_path "$1")"
+  full_path="$(normalize_path "$1" | tr '[:upper:]' '[:lower:]')"
 
   [[ "$full_path" == *"/.git/"* ]] \
     || [[ "$full_path" == *"/node_modules/"* ]] \
@@ -63,7 +70,20 @@ add_file_to_bundle() {
   local full_path
   full_path="$(normalize_path "$file_path")"
 
-  local relative_path="${full_path#$ROOT_ABS/}"
+  # Find the position of the root in the full path (case-insensitive)
+  local root_abs_lower
+  root_abs_lower="$(echo "$ROOT_ABS" | tr '[:upper:]' '[:lower:]')"
+  local full_path_lower
+  full_path_lower="$(echo "$full_path" | tr '[:upper:]' '[:lower:]')"
+
+  local relative_path
+  if [[ "$full_path_lower" == "$root_abs_lower"* ]]; then
+    relative_path="${full_path:${#ROOT_ABS}}"
+    relative_path="${relative_path#/}"
+    relative_path="${relative_path#\\}"
+  else
+    relative_path="$full_path"
+  fi
 
   cat >> "$bundle_path" <<EOF
 
@@ -91,8 +111,10 @@ append_directory_markdown() {
 
     local normalized
     normalized="$(normalize_path "$file")"
+    local normalized_lower
+    normalized_lower="$(echo "$normalized" | tr '[:upper:]' '[:lower:]')"
 
-    if [[ "$normalized" == "$OUTPUT_PATH_NORMALIZED" ]]; then
+    if [[ "$normalized_lower" == "$OUTPUT_PATH_NORMALIZED" ]]; then
       continue
     fi
 
@@ -100,7 +122,7 @@ append_directory_markdown() {
       continue
     fi
 
-    if [[ -n "${INCLUDED_SET["$normalized"]+x}" ]]; then
+    if [[ -n "${INCLUDED_SET["$normalized_lower"]+x}" ]]; then
       continue
     fi
 
@@ -109,14 +131,14 @@ append_directory_markdown() {
     fi
 
     add_file_to_bundle "$bundle_path" "$normalized"
-    INCLUDED_SET["$normalized"]=1
+    INCLUDED_SET["$normalized_lower"]=1
     INCLUDED_FILES+=("$normalized")
     printf -v "$section_files_added_ref" '%d' "$(( ${!section_files_added_ref} + 1 ))"
-  done < <(find "$dir" -maxdepth 1 -type f \( -iname "*.md" -o -iname "*.markdown" \) | sort)
+  done < <(find "$dir" -maxdepth 1 -type f \( -iname "*.md" -o -iname "*.markdown" \) | sort -f)
 }
 
 rm -f "$OUTPUT_PATH"
-OUTPUT_PATH_NORMALIZED="$(normalize_path "$OUTPUT_PATH")"
+OUTPUT_PATH_NORMALIZED="$(normalize_path "$OUTPUT_PATH" | tr '[:upper:]' '[:lower:]')"
 
 declare -a INCLUDED_FILES=()
 declare -a MISSING_EXPECTED_FILES=()
@@ -164,7 +186,9 @@ for section in "${CURATED_SECTIONS[@]}"; do
         continue
       fi
 
-      if [[ "$resolved" == "$OUTPUT_PATH_NORMALIZED" ]]; then
+      resolved_lower="$(echo "$resolved" | tr '[:upper:]' '[:lower:]')"
+
+      if [[ "$resolved_lower" == "$OUTPUT_PATH_NORMALIZED" ]]; then
         continue
       fi
 
@@ -172,13 +196,13 @@ for section in "${CURATED_SECTIONS[@]}"; do
         continue
       fi
 
-      if [[ -z "${INCLUDED_SET["$resolved"]+x}" ]]; then
+      if [[ -z "${INCLUDED_SET["$resolved_lower"]+x}" ]]; then
         if [[ "$section_files_added" -eq 0 ]]; then
           add_section_header "$OUTPUT_PATH" "$section_title" "$section_description"
         fi
 
         add_file_to_bundle "$OUTPUT_PATH" "$resolved"
-        INCLUDED_SET["$resolved"]=1
+        INCLUDED_SET["$resolved_lower"]=1
         INCLUDED_FILES+=("$resolved")
         section_files_added=$((section_files_added + 1))
       fi
@@ -204,8 +228,9 @@ if [[ "$INCLUDE_ADDITIONAL_MARKDOWN" == "true" ]]; then
     [[ -n "$file" ]] || continue
 
     normalized="$(normalize_path "$file")"
+    normalized_lower="$(echo "$normalized" | tr '[:upper:]' '[:lower:]')"
 
-    if [[ "$normalized" == "$OUTPUT_PATH_NORMALIZED" ]]; then
+    if [[ "$normalized_lower" == "$OUTPUT_PATH_NORMALIZED" ]]; then
       continue
     fi
 
@@ -213,12 +238,12 @@ if [[ "$INCLUDE_ADDITIONAL_MARKDOWN" == "true" ]]; then
       continue
     fi
 
-    if [[ -n "${INCLUDED_SET["$normalized"]+x}" ]]; then
+    if [[ -n "${INCLUDED_SET["$normalized_lower"]+x}" ]]; then
       continue
     fi
 
     add_file_to_bundle "$OUTPUT_PATH" "$normalized"
-    INCLUDED_SET["$normalized"]=1
+    INCLUDED_SET["$normalized_lower"]=1
     INCLUDED_FILES+=("$normalized")
   done < <(
     find "$ROOT_ABS" \
