@@ -4,72 +4,273 @@ set -euo pipefail
 
 OUTPUT="${1:-context-bundle.md}"
 ROOT="${2:-.}"
+INCLUDE_ADDITIONAL_MARKDOWN="${INCLUDE_ADDITIONAL_MARKDOWN:-false}"
 
 ROOT_ABS="$(cd "$ROOT" && pwd)"
 OUTPUT_PATH="$ROOT_ABS/$OUTPUT"
 
-# Remove existing output file if it exists
-rm -f "$OUTPUT_PATH"
-
-TMP_FILE="$(mktemp)"
-
-cleanup() {
-  rm -f "$TMP_FILE"
+normalize_path() {
+  local path_value="$1"
+  python3 - <<'PY' "$path_value"
+import os, sys
+print(os.path.abspath(sys.argv[1]))
+PY
 }
-trap cleanup EXIT
 
-{
-  echo "# Context Bundle"
-  echo
-  echo "Generated: $(date '+%Y-%m-%d %H:%M:%S')"
-  echo "Repository Root: $ROOT_ABS"
-  echo
-  echo "---"
-} > "$OUTPUT_PATH"
+is_excluded_path() {
+  local full_path
+  full_path="$(normalize_path "$1")"
 
-find "$ROOT_ABS" \
-  \( \
-    -path "*/.git/*" -o \
-    -path "*/node_modules/*" -o \
-    -path "*/target/*" -o \
-    -path "*/build/*" -o \
-    -path "*/out/*" -o \
-    -path "*/dist/*" -o \
-    -path "*/.idea/*" -o \
-    -path "*/.gradle/*" \
-  \) -prune -o \
-  -type f \( -iname "*.md" -o -iname "*.markdown" \) -print | sort > "$TMP_FILE"
+  [[ "$full_path" == *"/.git/"* ]] \
+    || [[ "$full_path" == *"/node_modules/"* ]] \
+    || [[ "$full_path" == *"/target/"* ]] \
+    || [[ "$full_path" == *"/build/"* ]] \
+    || [[ "$full_path" == *"/out/"* ]] \
+    || [[ "$full_path" == *"/dist/"* ]] \
+    || [[ "$full_path" == *"/.idea/"* ]] \
+    || [[ "$full_path" == *"/.gradle/"* ]] \
+    || [[ "$full_path" == *"/coverage/"* ]] \
+    || [[ "$full_path" == *"/vendor/"* ]]
+}
 
-FOUND_ANY=0
+resolve_repo_file() {
+  local relative_path="$1"
+  local candidate="$ROOT_ABS/$relative_path"
 
-while IFS= read -r file; do
-  # Exclude the generated output file itself
-  if [[ "$(cd "$(dirname "$file")" && pwd)/$(basename "$file")" == "$OUTPUT_PATH" ]]; then
-    continue
+  if [[ -f "$candidate" ]]; then
+    normalize_path "$candidate"
+  fi
+}
+
+add_section_header() {
+  local path="$1"
+  local title="$2"
+  local description="$3"
+
+  cat >> "$path" <<EOF
+
+## $title
+
+$description
+
+EOF
+}
+
+add_file_to_bundle() {
+  local bundle_path="$1"
+  local file_path="$2"
+
+  local full_path
+  full_path="$(normalize_path "$file_path")"
+
+  local relative_path="${full_path#$ROOT_ABS/}"
+
+  cat >> "$bundle_path" <<EOF
+
+---
+# FILE: $relative_path
+---
+
+EOF
+
+  cat "$full_path" >> "$bundle_path"
+}
+
+append_directory_markdown() {
+  local bundle_path="$1"
+  local section_title="$2"
+  local section_description="$3"
+  local relative_directory="$4"
+  local section_files_added_ref="$5"
+
+  local dir="$ROOT_ABS/$relative_directory"
+  [[ -d "$dir" ]] || return 0
+
+  while IFS= read -r file; do
+    [[ -n "$file" ]] || continue
+
+    local normalized
+    normalized="$(normalize_path "$file")"
+
+    if [[ "$normalized" == "$OUTPUT_PATH_NORMALIZED" ]]; then
+      continue
+    fi
+
+    if is_excluded_path "$normalized"; then
+      continue
+    fi
+
+    if [[ -n "${INCLUDED_SET["$normalized"]+x}" ]]; then
+      continue
+    fi
+
+    if [[ "${!section_files_added_ref}" -eq 0 ]]; then
+      add_section_header "$bundle_path" "$section_title" "$section_description"
+    fi
+
+    add_file_to_bundle "$bundle_path" "$normalized"
+    INCLUDED_SET["$normalized"]=1
+    INCLUDED_FILES+=("$normalized")
+    printf -v "$section_files_added_ref" '%d' "$(( ${!section_files_added_ref} + 1 ))"
+  done < <(find "$dir" -maxdepth 1 -type f \( -iname "*.md" -o -iname "*.markdown" \) | sort)
+}
+
+rm -f "$OUTPUT_PATH"
+OUTPUT_PATH_NORMALIZED="$(normalize_path "$OUTPUT_PATH")"
+
+declare -a INCLUDED_FILES=()
+declare -a MISSING_EXPECTED_FILES=()
+declare -A INCLUDED_SET=()
+
+cat > "$OUTPUT_PATH" <<EOF
+# Context Bundle
+
+Generated: $(date '+%Y-%m-%d %H:%M:%S')
+Repository Root: $ROOT_ABS
+Mode: Curated$( [[ "$INCLUDE_ADDITIONAL_MARKDOWN" == "true" ]] && echo " + Additional Markdown" || true )
+
+This bundle is intended for AI agents performing story refinement, implementation, testing, and review.
+Files are ordered intentionally to present high-value context first.
+
+---
+EOF
+
+CURATED_SECTIONS=(
+  "Repository Entry Point|Top-level repository overview and setup guidance.|README.md|"
+  "Agent Workflow Core|Primary agent onboarding and execution guidance.|docs/agent-start-here.md,docs/agent-development-guide.md,docs/agent-task-template.md,docs/ai_context.md|"
+  "Project Direction and Domain Context|Core project context, roadmap, domain definitions, and implementation guidance.|docs/vision.md,docs/roadmap.md,docs/implementation-order.md,docs/domain-model.md,docs/data-dictionary.md|"
+  "Architecture|System architecture, API design, ingestion design, workflow design, and analytics layer.||docs/architecture"
+  "Canonical Domain Definitions|Canonical entity specifications that define the domain model for ingestion and read behavior.||docs/canonical"
+  "Contracts|Source-to-canonical and other data or behavior mappings.||docs/contracts"
+  "Architecture Decision Records|ADRs that capture decisions and constraints agents should respect.||docs/adr"
+  "Diagrams|Supplementary diagrams for architecture and system understanding.||docs/diagrams"
+  "Dataset Documentation|Dataset-specific documentation that may support ingestion or interpretation.||docs/dataset,docs/datasets"
+  "Task-Specific Notes|Task-oriented documentation and work planning notes.||docs/tasks"
+)
+
+for section in "${CURATED_SECTIONS[@]}"; do
+  IFS='|' read -r section_title section_description section_files_csv section_directories_csv <<< "$section"
+  section_files_added=0
+
+  if [[ -n "$section_files_csv" ]]; then
+    IFS=',' read -r -a section_files <<< "$section_files_csv"
+    for relative_path in "${section_files[@]}"; do
+      [[ -n "$relative_path" ]] || continue
+
+      resolved="$(resolve_repo_file "$relative_path" || true)"
+
+      if [[ -z "$resolved" ]]; then
+        MISSING_EXPECTED_FILES+=("$relative_path")
+        continue
+      fi
+
+      if [[ "$resolved" == "$OUTPUT_PATH_NORMALIZED" ]]; then
+        continue
+      fi
+
+      if is_excluded_path "$resolved"; then
+        continue
+      fi
+
+      if [[ -z "${INCLUDED_SET["$resolved"]+x}" ]]; then
+        if [[ "$section_files_added" -eq 0 ]]; then
+          add_section_header "$OUTPUT_PATH" "$section_title" "$section_description"
+        fi
+
+        add_file_to_bundle "$OUTPUT_PATH" "$resolved"
+        INCLUDED_SET["$resolved"]=1
+        INCLUDED_FILES+=("$resolved")
+        section_files_added=$((section_files_added + 1))
+      fi
+    done
   fi
 
-  FOUND_ANY=1
+  if [[ -n "$section_directories_csv" ]]; then
+    IFS=',' read -r -a section_directories <<< "$section_directories_csv"
+    for relative_directory in "${section_directories[@]}"; do
+      [[ -n "$relative_directory" ]] || continue
+      append_directory_markdown "$OUTPUT_PATH" "$section_title" "$section_description" "$relative_directory" section_files_added
+    done
+  fi
+done
 
-  # Relative path from repo root
-  relative_path="${file#$ROOT_ABS/}"
+if [[ "$INCLUDE_ADDITIONAL_MARKDOWN" == "true" ]]; then
+  add_section_header \
+    "$OUTPUT_PATH" \
+    "Additional Markdown Files" \
+    "Supplementary markdown files discovered automatically, excluding already included files and ignored directories."
 
-  {
-    echo
-    echo "---"
-    echo "# FILE: $relative_path"
-    echo "---"
-    echo
-    cat "$file"
-  } >> "$OUTPUT_PATH"
+  while IFS= read -r file; do
+    [[ -n "$file" ]] || continue
 
-done < "$TMP_FILE"
+    normalized="$(normalize_path "$file")"
 
-if [[ "$FOUND_ANY" -eq 0 ]]; then
-  echo
-  echo "No markdown files found." >> "$OUTPUT_PATH"
-  echo "No markdown files found under $ROOT_ABS"
+    if [[ "$normalized" == "$OUTPUT_PATH_NORMALIZED" ]]; then
+      continue
+    fi
+
+    if is_excluded_path "$normalized"; then
+      continue
+    fi
+
+    if [[ -n "${INCLUDED_SET["$normalized"]+x}" ]]; then
+      continue
+    fi
+
+    add_file_to_bundle "$OUTPUT_PATH" "$normalized"
+    INCLUDED_SET["$normalized"]=1
+    INCLUDED_FILES+=("$normalized")
+  done < <(
+    find "$ROOT_ABS" \
+      \( \
+        -path "*/.git/*" -o \
+        -path "*/node_modules/*" -o \
+        -path "*/target/*" -o \
+        -path "*/build/*" -o \
+        -path "*/out/*" -o \
+        -path "*/dist/*" -o \
+        -path "*/.idea/*" -o \
+        -path "*/.gradle/*" -o \
+        -path "*/coverage/*" -o \
+        -path "*/vendor/*" \
+      \) -prune -o \
+      -type f \( -iname "*.md" -o -iname "*.markdown" \) -print | sort
+  )
+fi
+
+if [[ "${#INCLUDED_FILES[@]}" -eq 0 ]]; then
+  echo >> "$OUTPUT_PATH"
+  echo "No curated markdown files were found." >> "$OUTPUT_PATH"
+  echo "Warning: No curated markdown files were found under $ROOT_ABS"
   exit 0
 fi
 
+if [[ "${#MISSING_EXPECTED_FILES[@]}" -gt 0 ]]; then
+  cat >> "$OUTPUT_PATH" <<EOF
+
+## Missing Expected Files
+
+The following curated files were not found and were skipped:
+
+EOF
+
+  printf '%s\n' "${MISSING_EXPECTED_FILES[@]}" | sort -u | sed 's/^/- /' >> "$OUTPUT_PATH"
+  echo "Warning: Some curated files were not found. See 'Missing Expected Files' in the bundle."
+fi
+
+MISSING_COUNT="$(printf '%s\n' "${MISSING_EXPECTED_FILES[@]:-}" | sed '/^$/d' | sort -u | wc -l | tr -d ' ')"
+
+cat >> "$OUTPUT_PATH" <<EOF
+
+## Bundle Summary
+
+- Curated files included: ${#INCLUDED_FILES[@]}
+- Missing curated files skipped: $MISSING_COUNT
+- Additional markdown included: $( [[ "$INCLUDE_ADDITIONAL_MARKDOWN" == "true" ]] && echo "Yes" || echo "No" )
+
+EOF
+
 echo "Context bundle created: $OUTPUT_PATH"
-echo "Markdown files included: $(wc -l < "$TMP_FILE")"
+echo "Curated files included: ${#INCLUDED_FILES[@]}"
+echo "Missing curated files skipped: $MISSING_COUNT"
+echo "Additional markdown included: $( [[ "$INCLUDE_ADDITIONAL_MARKDOWN" == "true" ]] && echo "Yes" || echo "No" )"
